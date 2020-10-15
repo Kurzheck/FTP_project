@@ -9,6 +9,8 @@
 #include <memory.h>
 #include <stdio.h>
 
+#include "global.h"
+
 struct ThreadParam
 {
 	int connfd;
@@ -20,11 +22,58 @@ void LoadParam() {
 };
 
 bool ArgHandler(int argc, char **argv) {
-
+	if (argc == 1) {
+		return 1;
+	}
+	else if (argc == 3) {
+		if (strcmp(arg[1], "-port") == 0) {
+			int port = atoi(argv[2]);
+			if (port >= 0 && port < 65535) {
+				listenPort = port;
+				return 1;
+			}
+		}
+		else if (strcmp(arg[1], "-root") == 0) {
+			strcpy(rootPath, argv[2]);
+			return 1;
+		}
+	}
+	else if (argc == 5) {
+		if (strcmp(argv[1], "-port") == 0 && strcmp(argv[3], "-root") == 0) {
+			int port = atoi(argv[2]);
+			if (port >= 0 && port < 65535 && !argv[4]) {
+				listenPort = port;
+				strcpy(rootPath, argv[4]);
+				return 1;
+			}
+		}
+		else if (strcmp(argv[1], "-root") == 0 && strcmp(argv[3], "-port") == 0) {
+			int port = atoi(argv[4]);
+			if (port >= 0 && port < 65535 && !argv[2]) {
+				listenPort = port;
+				strcpy(rootPath, argv[2]);
+				return 1;
+			}
+		}
+	}
+	return 0;
 };
 
 bool SocketInit() {
+	struct sockaddr_in addr;
 
+	if ((listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
+		return 1;
+	}
+	if (bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
+		return 1;
+	}
+	if (listen(listenfd, 10) == -1) {
+		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
+		return 1;
+	}
 };
 
 
