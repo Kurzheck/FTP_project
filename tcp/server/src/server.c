@@ -8,87 +8,49 @@
 #include <string.h>
 #include <memory.h>
 #include <stdio.h>
+#include <pthread.h>
+
+#include "common.h"
 
 int main(int argc, char **argv) {
-	int listenfd, connfd;		//¼àÌýsocketºÍÁ¬½Ósocket²»Ò»Ñù£¬ºóÕßÓÃÓÚÊý¾Ý´«Êä
+	ArgHandler(argc, argv);
+	SocketInit();
+	int listenfd, connfd;		//ï¿½ï¿½ï¿½ï¿½socketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½socketï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½
 	struct sockaddr_in addr;
 	char sentence[8192];
 	int p;
 	int len;
 
-	//´´½¨socket
+	//ï¿½ï¿½ï¿½ï¿½socket
 	if ((listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
 		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
 		return 1;
 	}
 
-	//ÉèÖÃ±¾»úµÄipºÍport
+	//ï¿½ï¿½ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½ipï¿½ï¿½port
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = 6789;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);	//¼àÌý"0.0.0.0"
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);	//ï¿½ï¿½ï¿½ï¿½"0.0.0.0"
 
-	//½«±¾»úµÄipºÍportÓësocket°ó¶¨
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ipï¿½ï¿½portï¿½ï¿½socketï¿½ï¿½
 	if (bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
 		return 1;
 	}
 
-	//¿ªÊ¼¼àÌýsocket
+	//ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½socket
 	if (listen(listenfd, 10) == -1) {
 		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
 		return 1;
 	}
 
-	//³ÖÐø¼àÌýÁ¬½ÓÇëÇó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	while (1) {
-		//µÈ´ýclientµÄÁ¬½Ó -- ×èÈûº¯Êý
-		if ((connfd = accept(listenfd, NULL, NULL)) == -1) {
-			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
-			continue;
-		}
-		
-		//Õ¥¸Ésocket´«À´µÄÄÚÈÝ
-		p = 0;
-		while (1) {
-			int n = read(connfd, sentence + p, 8191 - p);
-			if (n < 0) {
-				printf("Error read(): %s(%d)\n", strerror(errno), errno);
-				close(connfd);
-				continue;
-			} else if (n == 0) {
-				break;
-			} else {
-				p += n;
-				if (sentence[p - 1] == '\n') {
-					break;
-				}
-			}
-		}
-		//socket½ÓÊÕµ½µÄ×Ö·û´®²¢²»»áÌí¼Ó'\0'
-		sentence[p - 1] = '\0';
-		len = p - 1;
-		
-		//×Ö·û´®´¦Àí
-		for (p = 0; p < len; p++) {
-			sentence[p] = toupper(sentence[p]);
-		}
-
-		//·¢ËÍ×Ö·û´®µ½socket
- 		p = 0;
-		while (p < len) {
-			int n = write(connfd, sentence + p, len + 1 - p);
-			if (n < 0) {
-				printf("Error write(): %s(%d)\n", strerror(errno), errno);
-				return 1;
-	 		} else {
-				p += n;
-			}			
-		}
-
-		close(connfd);
+		pthread_t = pthreadfd;
+		struct ThreadParam* params = (struct ThreadParam*)malloc(sizeof(struct ThreadParam));
+		LoadParams(params);
+		pthread_create(&pthreadfd, NULL, EstablishConnection, (void*)params);
 	}
-
 	close(listenfd);
 }
-
