@@ -15,11 +15,6 @@
 int main(int argc, char **argv) {
 	ArgHandler(argc, argv);
 	SocketInit();
-	int listenfd, connfd;		//����socket������socket��һ���������������ݴ���
-	struct sockaddr_in addr;
-	char sentence[8192];
-	int p;
-	int len;
 
 	//����socket
 	if ((listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
@@ -53,4 +48,5 @@ int main(int argc, char **argv) {
 		pthread_create(&pthreadfd, NULL, EstablishConnection, (void*)params);
 	}
 	close(listenfd);
+	return 0;
 }

@@ -66,10 +66,17 @@ bool SocketInit() {
 		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
 		return 1;
 	}
+	
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(listenPort);
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	
 	if (bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
 		return 1;
 	}
+	
 	if (listen(listenfd, 10) == -1) {
 		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
 		return 1;
