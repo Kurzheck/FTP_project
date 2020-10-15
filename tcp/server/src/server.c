@@ -15,9 +15,8 @@
 int main(int argc, char **argv) {
 	ArgHandler(argc, argv);
 	SocketInit();
-	//����������������
+	int connfd;
 	while (1) {
-		int connfd;
 		if ((connfd = accept(listenfd, NULL, NULL)) == -1) {
 			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
 			continue;

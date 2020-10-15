@@ -66,16 +66,19 @@ bool SocketInit() {
 		return 1;
 	}
 	
+	// set ip and port
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(listenPort);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	
+	// bind socket with ip and port
 	if (bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
 		return 1;
 	}
 	
+	// max client number
 	if (listen(listenfd, 10) == -1) {
 		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
 		return 1;
@@ -85,10 +88,21 @@ bool SocketInit() {
 void* EstablishConnection(void* params)
 {
 	struct ThreadParam* connectionData = (struct ThreadParam*)params;
-	
+	Login(connectionData);
+	HandleCommand(connectionData);
 }
 
+void Login(struct ThreadParam*) {
+	while(1) {
+		
+	}
+};
 
+void HandleCommand(struct ThreadParam*) {
+	while(1) {
+		
+	}
+};
 /*
 int main(int argc, char **argv) {
 	int listenfd, connfd;		//����socket������socket��һ���������������ݴ���
