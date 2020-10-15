@@ -15,36 +15,16 @@
 int main(int argc, char **argv) {
 	ArgHandler(argc, argv);
 	SocketInit();
-
-	//����socket
-	if ((listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
-		return 1;
-	}
-
-	//���ñ�����ip��port
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = 6789;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);	//����"0.0.0.0"
-
-	//��������ip��port��socket��
-	if (bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
-		return 1;
-	}
-
-	//��ʼ����socket
-	if (listen(listenfd, 10) == -1) {
-		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
-		return 1;
-	}
-
 	//����������������
 	while (1) {
+		int connfd;
+		if ((connfd = accept(listenfd, NULL, NULL)) == -1) {
+			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
+			continue;
+		}
 		pthread_t = pthreadfd;
 		struct ThreadParam* params = (struct ThreadParam*)malloc(sizeof(struct ThreadParam));
-		LoadParams(params);
+		params->connfd = connfd;
 		pthread_create(&pthreadfd, NULL, EstablishConnection, (void*)params);
 	}
 	close(listenfd);

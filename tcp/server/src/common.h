@@ -14,7 +14,6 @@
 struct ThreadParam
 {
 	int connfd;
-
 };
 
 void LoadParam() {
@@ -82,6 +81,12 @@ bool SocketInit() {
 		return 1;
 	}
 };
+
+void* EstablishConnection(void* params)
+{
+	struct ThreadParam* connectionData = (struct ThreadParam*)params;
+	
+}
 
 
 /*
