@@ -19,11 +19,11 @@ void LoadParam() {
 
 };
 
-void ArgHandler(int argc, char **argv) {
+bool ArgHandler(int argc, char **argv) {
 
 };
 
-void SocketInit() {
+bool SocketInit() {
 
 };
 
