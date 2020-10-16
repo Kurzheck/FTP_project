@@ -1,3 +1,5 @@
+#define SENTENCE_LENGTH 1000
+#define PATH_LENGTH
 int listenfd;
 //int connectionfd;
 int listenPort = 21;

@@ -10,15 +10,8 @@
 #include <stdio.h>
 
 #include "global.h"
-
-struct ThreadParam
-{
-	int connfd;
-};
-
-void LoadParam() {
-
-};
+#include "data_structure.h"
+#include "command_handlers.h"
 
 bool ArgHandler(int argc, char **argv) {
 	if (argc == 1) {
@@ -92,10 +85,38 @@ void* EstablishConnection(void* params)
 	HandleCommand(connectionData);
 }
 
-void Login(struct ThreadParam*) {
-	while(1) {
-		
+struct Request SetRequest(char* sentence) {
+
+};
+
+void Login(struct ThreadParam* data) {
+	int connfd = data->connfd;
+	char* sentence = data->sentence;
+	// USER
+	while (1) {
+		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
+		data.request = SetRequest(sentence);
+		if (data->request.type == USER) {
+			USER_Handler(data);
+		}
+		else {
+
+		}
 	}
+
+	// PASS
+	while (1) {
+		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
+		data.request = SetRequest(sentence);
+		if (data->request.type == PASS) {
+			USER_Handler(data);
+		}
+		else {
+			PASS_Handler(data);
+		}
+	}
+	
+
 };
 
 void HandleCommand(struct ThreadParam*) {
