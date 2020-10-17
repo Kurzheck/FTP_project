@@ -13,6 +13,11 @@
 #include "global.h"
 #include "data_structure.h"
 
+int INVALID_Handler(struct ThreadParam* data) {
+	// TODO
+	return 0;
+}
+
 int USER_Handler(struct ThreadParam* data) {
 	// anonymous
 	if (strcmp(data->request.arg, "anonymous") == 0) {
@@ -49,4 +54,59 @@ int PASS_Handler(struct ThreadParam* data) {
 			break;
 	}
 	return 0;
+};
+
+int PORT_Handler(struct ThreadParam* data) {
+
+};
+
+int PASV_Handler(struct ThreadParam* data) {
+
+};
+
+int RETR_Handler(struct ThreadParam* data) {
+
+};
+
+int STOR_Handler(struct ThreadParam* data) {
+
+};
+
+int QUIT_Handler(struct ThreadParam* data) {
+
+};
+
+int SYST_Handler(struct ThreadParam* data) {
+
+};
+
+int TYPE_Handler(struct ThreadParam* data) {
+
+};
+
+int MKD_Handler(struct ThreadParam* data) {
+
+};
+
+int CWD_Handler(struct ThreadParam* data) {
+
+};
+
+int PWD_Handler(struct ThreadParam* data) {
+
+};
+
+int LIST_Handler(struct ThreadParam* data) {
+
+};
+int RMD_Handler(struct ThreadParam* data) {
+
+};
+
+int RNFR_Handler(struct ThreadParam* data) {
+
+};
+
+int RNTO_Handler(struct ThreadParam* data) {
+
 };
