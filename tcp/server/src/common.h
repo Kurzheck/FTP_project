@@ -92,6 +92,7 @@ struct Request SetRequest(char* sentence) {
 void Login(struct ThreadParam* data) {
 	int connfd = data->connfd;
 	char* sentence = data->sentence;
+
 	// USER
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
