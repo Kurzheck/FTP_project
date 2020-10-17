@@ -56,10 +56,12 @@ int PASS_Handler(struct ThreadParam* data) {
 	return 0;
 };
 
+// connect()
 int PORT_Handler(struct ThreadParam* data) {
 
 };
 
+// accept()
 int PASV_Handler(struct ThreadParam* data) {
 
 };
