@@ -12,7 +12,7 @@
 #include "global.h"
 #include "data_structure.h"
 
-bool ReadRequest(int fd, int len, char* sentence) {
+int ReadRequest(int fd, int len, char* sentence) {
 	int p = 0;
 	while (1) {
 		int n = read(fd, sentence + p, len - 1 - p);
@@ -34,11 +34,11 @@ bool ReadRequest(int fd, int len, char* sentence) {
 	return 1;
 	};
 
-bool ReadData() {
+int ReadData() {
 
 };
 
-bool WriteResponse(int fd, int len, const char* sentence) {
+int WriteResponse(int fd, int len, const char* sentence) {
 	int p = 0;
 	while (p < len) {
 		int n = write(fd, sentence + p, len - p);

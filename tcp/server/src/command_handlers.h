@@ -14,18 +14,39 @@
 #include "data_structure.h"
 
 int USER_Handler(struct ThreadParam* data) {
-    // anonymous
-    if (strcmp(data->request.arg, "anonymous") == 0) {
-        printf("USER anonymous received, connfd = %d\n", data->connfd);
-        WriteResponse(data->connfd, );
-        // TODO
-    }
-    else {
-        
-    }
-    
+	// anonymous
+	if (strcmp(data->request.arg, "anonymous") == 0) {
+		printf("USER anonymous received, connfd = %d\n", data->connfd);
+		data->clientState = HAS_USER;
+		char responseStr[RESPONSE_LENGTH] = "331 USER ok, PASS please.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	else {
+		printf("Error username(): %s(%d)\n", strerror(errno), errno);
+		char responseStr[RESPONSE_LENGTH] = "530 USER needs to be anonymous.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	return 0;
 };
 
 int PASS_Handler(struct ThreadParam* data) {
-
+	switch (data->clientState) {
+		case NO_USER:
+			printf("Error pass(): %s(%d)\n", strerror(errno), errno);
+			char responseStr[RESPONSE_LENGTH] = "503 needs USER first.\r\n";
+			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+			break;
+		case HAS_USER:
+			printf("password received, connfd = %d\n", data->connfd);
+			char responseStr[RESPONSE_LENGTH] = "230 login successful, enjoy the server.\r\n";
+			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+			break;
+		case HAS_PASS:
+		default:
+			printf("already logged in, connfd = %d\n", data->connfd);
+			char responseStr[RESPONSE_LENGTH] = "530 already logged in.\r\n";
+			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+			break;
+	}
+	return 0;
 };

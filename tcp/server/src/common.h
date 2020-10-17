@@ -86,7 +86,7 @@ void* EstablishConnection(void* params)
 }
 
 struct Request SetRequest(char* sentence) {
-
+	// TODO
 };
 
 void Login(struct ThreadParam* data) {
@@ -98,9 +98,12 @@ void Login(struct ThreadParam* data) {
 		data.request = SetRequest(sentence);
 		if (data->request.type == USER) {
 			USER_Handler(data);
+			break;
 		}
 		else {
-
+			printf("Error user(): %s(%d)\n", strerror(errno), errno);
+			char responseStr[RESPONSE_LENGTH] = "530 needs to login.\r\n";
+			WriteResponse(data->connfd, strlen(responseStr), responseStr);
 		}
 	}
 
@@ -109,14 +112,14 @@ void Login(struct ThreadParam* data) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
 		data.request = SetRequest(sentence);
 		if (data->request.type == PASS) {
-			USER_Handler(data);
-		}
-		else {
 			PASS_Handler(data);
 		}
+		else {
+			printf("Error pass(): %s(%d)\n", strerror(errno), errno);
+			char responseStr[RESPONSE_LENGTH] = "530 needs password.\r\n";
+			WriteResponse(data->connfd, strlen(responseStr), responseStr);
+		}
 	}
-	
-
 };
 
 void HandleCommand(struct ThreadParam*) {
