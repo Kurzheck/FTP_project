@@ -61,5 +61,21 @@ void CloseConnection(int fd) {
 };
 
 int RandomPort() {
+	return rand() % 45536 + 20000;
+};
 
+char* AddrToString(int port) {
+	int p1 = port / 256;
+	int p2 = port % 256;
+
+	char ipStr[30] = serverIP;
+	for (int i = 0; i < 30; i++) {
+		if (ipStr[i] == '.') {
+			ipStr[i] = ',';
+		}
+	}
+
+	char* returnStr = (char*)malloc(30 * sizeof(char));
+	sprintf(returnStr, "%s,%d,%d", ipStr, p1, p2);
+	return returnStr;
 };

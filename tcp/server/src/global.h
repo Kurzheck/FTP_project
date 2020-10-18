@@ -5,4 +5,4 @@ int listenfd;
 //int connectionfd;
 int listenPort = 21;
 char rootPath[PATH_LENGTH] = "/tmp";
-char serverIP[100] = "127.0.0.1";
+char serverIP[30] = "127.0.0.1";
