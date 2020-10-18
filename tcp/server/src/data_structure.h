@@ -30,8 +30,9 @@ struct Request {
 };
 
 struct ThreadParam {
-	int connfd;
+	int connfd = -1;
+	int datafd = -1;
 	char sentence[SENTENCE_LENGTH];
-	enum ClientState clientState;
+	enum ClientState clientState = NO_USER;
 	struct Request request;
 };

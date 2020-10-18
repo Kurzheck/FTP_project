@@ -52,3 +52,10 @@ int WriteResponse(int fd, int len, const char* sentence) {
 	}
 	return 1;
 };
+
+void CloseConnection(int fd) {
+	if (fd > -1) {
+		printf("close conneci=tion %d\n", fd);
+		close(fd);
+	}
+};

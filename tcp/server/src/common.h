@@ -133,53 +133,54 @@ void HandleCommand(struct ThreadParam* data) {
 	while(1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
 		data->request = SetRequest(sentence);
-		switch (data->request.type)
-		{
-		case RETR:
-			RETR_Handler(data);
-			break;
-		case STOR:
-			STOR_Handler(data);
-			break;
-		case QUIT:
-			QUIT_Handler(data);
-			break;
-		case SYST:
-			SYST_Handler(data);
-			break;
-		case TYPE:
-			TYPE_Handler(data);
-			break;
-		case PORT:
-			PORT_Handler(data);
-			break;
-		case PASV:
-			PASV_Handler(data);
-			break;
-		case MKD:
-			MKD_Handler(data);
-			break;
-		case CWD:
-			CWD_Handler(data);
-			break;
-		case PWD:
-			PWD_Handler(data);
-			break;
-		case LIST:
-			LIST_Handler(data);
-			break;
-		case RMD:
-			RMD_Handler(data);
-			break;
-		case RNFR:
-			RNFR_Handler(data);
-			break;
-		case RNTO:
-			RNTO_Handler(data);
-			break;
-		default:
-			INVALID_Handler(data);
-			break;
+		switch (data->request.type) {
+			case RETR:	
+				RETR_Handler(data);
+				break;
+			case STOR:
+				STOR_Handler(data);
+				break;
+			case QUIT:
+				QUIT_Handler(data);
+				free(data);
+				phtread_exit(0);
+				break;
+			case SYST:
+				SYST_Handler(data);
+				break;
+			case TYPE:
+				TYPE_Handler(data);
+				break;
+			case PORT:
+				PORT_Handler(data);
+				break;
+			case PASV:
+				PASV_Handler(data);
+				break;
+			case MKD:
+				MKD_Handler(data);
+				break;
+			case CWD:
+				CWD_Handler(data);
+				break;
+			case PWD:
+				PWD_Handler(data);
+				break;
+			case LIST:
+				LIST_Handler(data);
+				break;
+			case RMD:
+				RMD_Handler(data);
+				break;
+			case RNFR:
+				RNFR_Handler(data);
+				break;
+			case RNTO:
+				RNTO_Handler(data);
+				break;
+			default:
+				INVALID_Handler(data);
+				break;
 		}
 	}
 };
