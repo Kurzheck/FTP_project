@@ -58,11 +58,42 @@ int PASS_Handler(struct ThreadParam* data) {
 
 // connect()
 int PORT_Handler(struct ThreadParam* data) {
-
+	
 };
 
 // accept()
 int PASV_Handler(struct ThreadParam* data) {
+	// close current connections
+	CloseConnection(data->connfd);
+	CloseConnection(data->datafd);
+	data->connfd = -1;
+	data->datafd = -1;
+
+	data->dataConnectionMode = PASV_MODE;
+	data->dataPort = RandomPort();
+	char responseStr[RESPONSE_LENGTH] = "227 passive mode (";
+
+	struct sockaddr_in addr;
+	if ((data->data_listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
+		return 0;
+	}
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(data->dataPort);
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	inet_pton(AF_INET, serverIP, &addr.sin_addr);
+
+	if (bind(data->data_listenfd,(struct sockaddr*)&addr, sizeof(addr)) == -1) {
+		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
+		return 0;
+	}
+
+	if (listen(data->data_listenfd, 10) == -1) {
+		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
+		return 0;
+	}
+
 
 };
 
@@ -109,6 +140,7 @@ int PWD_Handler(struct ThreadParam* data) {
 int LIST_Handler(struct ThreadParam* data) {
 
 };
+
 int RMD_Handler(struct ThreadParam* data) {
 
 };

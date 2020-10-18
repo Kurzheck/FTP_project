@@ -24,6 +24,12 @@ enum ClientState {
 	HAS_PASS
 };
 
+enum DataConnectionMode {
+	NO_CONNECTION,
+	PASV_MODE,
+	PORT_MODE
+};
+
 struct Request {
 	enum RequestType type;
 	char arg[SENTENCE_LENGTH];
@@ -31,8 +37,11 @@ struct Request {
 
 struct ThreadParam {
 	int connfd = -1;
-	int datafd = -1;
+	int data_connfd = -1;
+	int data_listenfd = -1;
+	int dataPort;
 	char sentence[SENTENCE_LENGTH];
 	enum ClientState clientState = NO_USER;
+	enum DataConnectionMode dataConnectionMode = NO_CONNECTION;
 	struct Request request;
 };

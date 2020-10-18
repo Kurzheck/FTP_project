@@ -13,7 +13,7 @@
 #include "data_structure.h"
 #include "command_handlers.h"
 
-bool ArgHandler(int argc, char **argv) {
+int ArgHandler(int argc, char **argv) {
 	if (argc == 1) {
 		return 1;
 	}
@@ -51,12 +51,12 @@ bool ArgHandler(int argc, char **argv) {
 	return 0;
 };
 
-bool SocketInit() {
+int SocketInit() {
 	struct sockaddr_in addr;
 
 	if ((listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
 		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
-		return 1;
+		return 0;
 	}
 	
 	// set ip and port
@@ -68,14 +68,15 @@ bool SocketInit() {
 	// bind socket with ip and port
 	if (bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
-		return 1;
+		return 0;
 	}
 	
 	// max client number
 	if (listen(listenfd, 10) == -1) {
 		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
-		return 1;
+		return 0;
 	}
+	return 1;
 };
 
 void* EstablishConnection(void* params)
@@ -138,7 +139,7 @@ void HandleCommand(struct ThreadParam* data) {
 				RETR_Handler(data);
 				break;
 			case STOR:
-				STOR_Handler(data);
+				STOR_Handler(data);	
 				break;
 			case QUIT:
 				QUIT_Handler(data);
