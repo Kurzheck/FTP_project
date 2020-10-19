@@ -135,7 +135,7 @@ void HandleCommand(struct ThreadParam* data) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
 		data->request = SetRequest(sentence);
 		switch (data->request.type) {
-			case RETR:	
+			case RETR:
 				RETR_Handler(data);
 				break;
 			case STOR:

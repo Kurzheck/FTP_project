@@ -35,13 +35,19 @@ struct Request {
 	char arg[SENTENCE_LENGTH];
 };
 
+struct ClientAddr {
+	char IP[30];
+	int port = -1;
+};
+
 struct ThreadParam {
-	int connfd = -1;
-	int data_connfd = -1;
-	int data_listenfd = -1;
-	int dataPort;
+	int connfd = -1; // for command
+	int datafd = -1; // for data transfer
+	int listenfd = -1; // for pasv
+	int dataPort = -1;
 	char sentence[SENTENCE_LENGTH];
 	enum ClientState clientState = NO_USER;
 	enum DataConnectionMode dataConnectionMode = NO_CONNECTION;
 	struct Request request;
+	struct ClientAddr clientAddr;
 };

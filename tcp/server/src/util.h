@@ -79,3 +79,7 @@ char* AddrToString(int port) {
 	sprintf(returnStr, "%s,%d,%d", ipStr, p1, p2);
 	return returnStr;
 };
+
+int ParseIPPort(struct ClientAddr* clientAddr) {
+
+};
