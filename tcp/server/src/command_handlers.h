@@ -58,9 +58,23 @@ int PASS_Handler(struct ThreadParam* data) {
 
 // connect()
 int PORT_Handler(struct ThreadParam* data) {
+	// close current connections
+	CloseConnection(data->datafd);
+	CloseConnection(data->listenfd);
+	data->datafd = -1;
+	data->listenfd = -1;
+
+	char responseStr[RESPONSE_LENGTH]
 	if (ParseIPPort(&(data->clientAddr)) {
-		data->dataConnectionMode = PORT_MODE; 
+		printf("port mode on, connfd = %d\n", data->connfd);
+		data->dataConnectionMode = PORT_MODE;
+		responseStr[RESPONSE_LENGTH] = "200 port success.\r\n";
 	}
+	else {
+		printf("Error ParseIPPort(): %s(%d)\n", strerror(errno), errno);
+		responseStr[RESPONSE_LENGTH] = "500 invalid arguments.\r\n";
+	}
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 // accept()
@@ -77,8 +91,7 @@ int PASV_Handler(struct ThreadParam* data) {
 	struct sockaddr_in addr;
 	if ((data->listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
 		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
-		char responseStr[RESPONSE_LENGTH] = "425 PASV command failed.";
-		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+		goto PASV_failed;
 	}
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
@@ -87,16 +100,20 @@ int PASV_Handler(struct ThreadParam* data) {
 
 	if (inet_pton(AF_INET, serverIP, &addr.sin_addr) == -1) {
 		printf("Error inet_pton(): %s(%d)\n", strerror(errno), errno);
+		goto PASV_failed;
 	}
 
 	if (bind(data->listenfd,(struct sockaddr*)&addr, sizeof(addr)) == -1) {
 		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
+		goto PASV_failed;
 	}
 
 	if (listen(data->listenfd, 10) == -1) {
 		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
+		goto PASV_failed;
 	}
 
+	printf("passive mode on, connfd = %d\n", data->connfd);
 	char addrStr[30];
 	strcpy(addrStr, AddrToString());
 	char responseStr[RESPONSE_LENGTH];
