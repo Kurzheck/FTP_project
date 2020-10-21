@@ -65,8 +65,8 @@ int PORT_Handler(struct ThreadParam* data) {
 	data->listenfd = -1;
 
 	char responseStr[RESPONSE_LENGTH]
-	if (ParseIPPort(&(data->clientAddr)) {
-		printf("port mode on, connfd = %d\n", data->connfd);
+	if (ParseIPPort(&(data->clientAddr), &(data->request.arg)) {
+		printf("port mode on, connfd = %d\n", data->connfd);s
 		data->dataConnectionMode = PORT_MODE;
 		responseStr[RESPONSE_LENGTH] = "200 port success.\r\n";
 	}

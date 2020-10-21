@@ -80,6 +80,30 @@ char* AddrToString(int port) {
 	return returnStr;
 };
 
-int ParseIPPort(struct ClientAddr* clientAddr) {
-
+int ParseIPPort(struct ClientAddr* addr, char* str) {
+	// "192,168,0,105,255,254"
+	strcpy(addr->IP, str);
+	int comma[5];
+	int j = 0;
+	for (int i = 0; i < strlen(str), i++) {
+		if (str[i] == ',') {
+			comma[j] = 0;
+			addr->IP[i] = '.';
+			j++;
+		}
+		if (j == 5) {
+			break;
+		}
+	}
+	if (j != 5) {
+		return 0;
+	}
+	addr->IP[comma[3]] = '\0';
+	addr->IP[comma[4]] = '\0';
+	char* p = &(addr->IP[comma[3]]);
+	int p1 = atoi(p + 1);
+	p = &(addr->IP[comma[4]]);
+	int p2 = atoi(p + 1);
+	addr->port = p1 * 256 + p2;
+	return 1;
 };

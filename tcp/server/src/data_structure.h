@@ -32,11 +32,11 @@ enum DataConnectionMode {
 
 struct Request {
 	enum RequestType type;
-	char arg[SENTENCE_LENGTH];
+	char arg[SENTENCE_LENGTH] = {0};
 };
 
 struct ClientAddr {
-	char IP[30];
+	char IP[30] = {0};
 	int port = -1;
 };
 
@@ -45,7 +45,7 @@ struct ThreadParam {
 	int datafd = -1; // for data transfer
 	int listenfd = -1; // for pasv
 	int dataPort = -1;
-	char sentence[SENTENCE_LENGTH];
+	char sentence[SENTENCE_LENGTH] = {0};
 	enum ClientState clientState = NO_USER;
 	enum DataConnectionMode dataConnectionMode = NO_CONNECTION;
 	struct Request request;

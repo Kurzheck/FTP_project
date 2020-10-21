@@ -25,8 +25,8 @@ int main(int argc, char **argv) {
 		struct ThreadParam* params = (struct ThreadParam*)malloc(sizeof(struct ThreadParam));
 		params->connfd = connfd;
 		// params->clientState = NO_USER;
-		memset(&(params->sentence), 0, sizeof(params->sentence));
-		memset(&(params->request), 0, sizeof(params->request));
+		//memset(&(params->sentence), 0, sizeof(params->sentence));
+		//memset(&(params->request), 0, sizeof(params->request));
 		pthread_create(&pthreadfd, NULL, EstablishConnection, (void*)params);
 	}
 	close(listenfd);
