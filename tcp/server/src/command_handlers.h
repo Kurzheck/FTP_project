@@ -31,7 +31,6 @@ int USER_Handler(struct ThreadParam* data) {
 		char responseStr[RESPONSE_LENGTH] = "530 USER needs to be anonymous.\r\n";
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
-	return 0;
 };
 
 int PASS_Handler(struct ThreadParam* data) {
@@ -53,7 +52,6 @@ int PASS_Handler(struct ThreadParam* data) {
 			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 			break;
 	}
-	return 0;
 };
 
 // connect()
@@ -122,7 +120,7 @@ int PASV_Handler(struct ThreadParam* data) {
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 
 PASV_failed:
-	char responseStr[RESPONSE_LENGTH] = "425 PASV command failed.";
+	char responseStr[RESPONSE_LENGTH] = "425 PASV command failed.\r\n";
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
@@ -181,7 +179,12 @@ int SYST_Handler(struct ThreadParam* data) {
 };
 
 int TYPE_Handler(struct ThreadParam* data) {
-
+	if (strcmp(data->request.arg, "I") == 0) {
+		char responseStr[RESPONSE_LENGTH] = "200 type set to I.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	char responseStr[RESPONSE_LENGTH] = "425 invalid type.\r\n";
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int MKD_Handler(struct ThreadParam* data) {
