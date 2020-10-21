@@ -196,7 +196,9 @@ int CWD_Handler(struct ThreadParam* data) {
 };
 
 int PWD_Handler(struct ThreadParam* data) {
-
+	char responseStr[RESPONSE_LENGTH];
+	sprintf(responseStr, "257 \"%s\".\r\n", data->cwd);
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int LIST_Handler(struct ThreadParam* data) {
