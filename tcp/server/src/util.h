@@ -107,3 +107,11 @@ int ParseIPPort(struct ClientAddr* addr, char* str) {
 	addr->port = p1 * 256 + p2;
 	return 1;
 };
+
+int ReadFile(struct ThreadParam* data) {
+	// TODO
+};
+
+int WriteFile(struct ThreadParam* data) {
+	// TODO
+}

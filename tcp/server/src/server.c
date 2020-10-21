@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
 		pthread_t = pthreadfd;
 		struct ThreadParam* params = (struct ThreadParam*)malloc(sizeof(struct ThreadParam));
 		params->connfd = connfd;
+		strcpy(params->cwd, rootPath);
 		// params->clientState = NO_USER;
 		//memset(&(params->sentence), 0, sizeof(params->sentence));
 		//memset(&(params->request), 0, sizeof(params->request));

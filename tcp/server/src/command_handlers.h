@@ -68,11 +68,11 @@ int PORT_Handler(struct ThreadParam* data) {
 	if (ParseIPPort(&(data->clientAddr), &(data->request.arg)) {
 		printf("port mode on, connfd = %d\n", data->connfd);s
 		data->dataConnectionMode = PORT_MODE;
-		responseStr[RESPONSE_LENGTH] = "200 port success.\r\n";
+		strcpy(responseStr, "200 port success.\r\n");
 	}
 	else {
 		printf("Error ParseIPPort(): %s(%d)\n", strerror(errno), errno);
-		responseStr[RESPONSE_LENGTH] = "500 invalid arguments.\r\n";
+		strcpy(responseStr, "500 invalid arguments.\r\n");
 	}
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
@@ -126,12 +126,42 @@ PASV_failed:
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
+// write()
 int RETR_Handler(struct ThreadParam* data) {
+	if (data->dataConnectionMode == NO_CONNECTION) {
+		printf("no connection, connfd = %d\n", data->connfd);
+		char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
 
+	char responseStr[RESPONSE_LENGTH] = "150 RETR start.\r\n";
+	if (data->dataConnectionMode == PORT_MODE) { // connect()
+		// TODO
+	}
+	else if (data->dataConnectionMode == PASV_MODE) { // accept()
+		// TODO
+	}
+	WriteFile(data);
+	// TODO
 };
 
+// read()
 int STOR_Handler(struct ThreadParam* data) {
+	if (data->dataConnectionMode == NO_CONNECTION) {
+		printf("no connection, connfd = %d\n", data->connfd);
+		char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
 
+	char responseStr[RESPONSE_LENGTH] = "150 RETR start.\r\n";
+	if (data->dataConnectionMode == PORT_MODE) { // connect()
+		// TODO
+	}
+	else if (data->dataConnectionMode == PASV_MODE) { // accept()
+		// TODO
+	}
+	ReadFile(data);
+	// TODO
 };
 
 int QUIT_Handler(struct ThreadParam* data) {
