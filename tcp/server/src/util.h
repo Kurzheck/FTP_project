@@ -115,3 +115,7 @@ int ReadFile(struct ThreadParam* data) {
 int WriteFile(struct ThreadParam* data) {
 	// TODO
 }
+
+int ChangePath(struct ThreadParam* data) {
+	// TODO
+}

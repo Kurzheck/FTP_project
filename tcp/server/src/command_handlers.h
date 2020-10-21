@@ -192,7 +192,12 @@ int MKD_Handler(struct ThreadParam* data) {
 };
 
 int CWD_Handler(struct ThreadParam* data) {
-
+	if (ChangePath(data)) {
+		char responseStr[RESPONSE_LENGTH] = "250 CWD succeeded.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	char responseStr[RESPONSE_LENGTH] = "550 CWD failed.\r\n";
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int PWD_Handler(struct ThreadParam* data) {
