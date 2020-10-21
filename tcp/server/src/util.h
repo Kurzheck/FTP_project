@@ -114,8 +114,16 @@ int ReadFile(struct ThreadParam* data) {
 
 int WriteFile(struct ThreadParam* data) {
 	// TODO
-}
+};
 
-int ChangePath(struct ThreadParam* data) {
+int MakeDir(struct ThreadParam* data) {
 	// TODO
-}
+};
+
+int ChangeDir(struct ThreadParam* data) {
+	// TODO
+};
+
+int RemoveDir(struct ThreadParam* data) {
+	// TODO
+};

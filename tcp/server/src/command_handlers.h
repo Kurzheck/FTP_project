@@ -188,11 +188,16 @@ int TYPE_Handler(struct ThreadParam* data) {
 };
 
 int MKD_Handler(struct ThreadParam* data) {
-
+	if (MakeDir(data)) {
+		char responseStr[RESPONSE_LENGTH] = "250 MKD succeeded.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	char responseStr[RESPONSE_LENGTH] = "550 MKD failed.\r\n";
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int CWD_Handler(struct ThreadParam* data) {
-	if (ChangePath(data)) {
+	if (ChangeDir(data)) {
 		char responseStr[RESPONSE_LENGTH] = "250 CWD succeeded.\r\n";
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
@@ -211,7 +216,12 @@ int LIST_Handler(struct ThreadParam* data) {
 };
 
 int RMD_Handler(struct ThreadParam* data) {
-
+	if (RemoveDir(data)) {
+		char responseStr[RESPONSE_LENGTH] = "250 RMD succeeded.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	char responseStr[RESPONSE_LENGTH] = "550 RMD failed.\r\n";
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int RNFR_Handler(struct ThreadParam* data) {
