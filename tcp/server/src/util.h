@@ -118,6 +118,12 @@ int WriteFile(struct ThreadParam* data) {
 
 int MakeDir(struct ThreadParam* data) {
 	// TODO
+	if (chdir(data->cwd) == 0) {
+		if (mkdir(PathName, 0) == 0) {
+			return !chdir(rootPath);
+		}
+	}
+	return 0;
 };
 
 int ChangeDir(struct ThreadParam* data) {
