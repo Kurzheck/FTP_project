@@ -93,10 +93,14 @@ void Login(struct ThreadParam* data) {
 	// USER
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		SetRequest(data);
+		if (SetRequest(data)) {
+			INVALID_Handler(data);
+			continue;
+		}
 		if (data->request.type == USER) {
 			USER_Handler(data);
-			break;
+			if (data->clientState == HAS_USER)
+				break;
 		}
 		else {
 			printf("Error user(): %s(%d)\n", strerror(errno), errno);
@@ -109,10 +113,14 @@ void Login(struct ThreadParam* data) {
 	// PASS
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		SetRequest(data);
+		if (SetRequest(data)) {
+			INVALID_Handler(data);
+			continue;
+		}
 		if (data->request.type == PASS) {
 			PASS_Handler(data);
-			break;
+			if (data->clientState == HAS_PASS)
+				break;
 		}
 		else {
 			printf("Error pass(): %s(%d)\n", strerror(errno), errno);
@@ -129,7 +137,10 @@ void HandleCommand(struct ThreadParam* data) {
 
 	while(1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		SetRequest(data);
+		if (SetRequest(data)) {
+			INVALID_Handler(data);
+			continue;
+		}
 		switch (data->request.type) {
 			case RETR:
 				RETR_Handler(data);

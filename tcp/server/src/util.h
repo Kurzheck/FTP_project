@@ -13,7 +13,6 @@
 #include "data_structure.h"
 
 int SetRequest(struct ThreadParam* data) {
-	// CWD lalala
 	char sentence[SENTENCE_LENGTH] = strcmp(data->sentence);
 	int cmdLength = -1;
 	char* argPtr;
@@ -44,27 +43,95 @@ int SetRequest(struct ThreadParam* data) {
 		switch (sentence[0])
 		{
 		case 'M':
-			/* code */
+			if (strcmp(sentence, "MKD") == 0)
+				data->request.type = MKD;
+			else
+				return 0;
 			break;
 		case 'C':
-			/* code */
+			if (strcmp(sentence, "CWD") == 0)
+				data->request.type = CWD;
+			else
+				return 0;
 			break;
 		case 'P':
-			/* code */
+			if (strcmp(sentence, "PWD") == 0)
+				data->request.type = PWD;
+			else
+				return 0;
 			break;
 		case 'R':
-			/* code */
+			if (strcmp(sentence, "RMD") == 0)
+				data->request.type = RMD;
+			else
+				return 0;
 			break;
 		default:
+			return 0;
 			break;
 		}
 	}
 	else if (cmdLength == 4) {
-
+		switch (sentence[0])
+		{
+		case 'U':
+			if (strcmp(sentence, "USER") == 0)
+				data->request.type = USER;
+			else
+				return 0;
+			break;
+		case 'Q':
+			if (strcmp(sentence, "QUIT") == 0)
+				data->request.type = QUIT;
+			else
+				return 0;
+			break;
+		case 'T':
+			if (strcmp(sentence, "TYPE") == 0)
+				data->request.type = TYPE;
+			else
+				return 0;
+			break;
+		case 'L':
+			if (strcmp(sentence, "LIST") == 0)
+				data->request.type = LIST;
+			else
+				return 0;
+			break;
+		case 'R':
+			if (strcmp(sentence, "RNFR") == 0)
+				data->request.type = RNFR;
+			else if (strcmp(sentence, "RNTO") == 0)
+				data->request.type = RNTO;
+			else if (strcmp(sentence, "RETR") == 0)
+				data->request.type = RETR;
+			else
+				return 0;
+			break;
+		case 'P':
+			if (strcmp(sentence, "PASS") == 0)
+				data->request.type = PASS;
+			else if (strcmp(sentence, "PASV") == 0)
+				data->request.type = PASV;
+			else if (strcmp(sentence, "PORT") == 0)
+				data->request.type = PORT;
+			else
+				return 0;
+			break;
+		case 'S':
+			if (strcmp(sentence, "SYST") == 0)
+				data->request.type = SYST;
+			else if (strcmp(sentence, "STOR") == 0)
+				data->request.type = STOR;
+			else
+				return 0;
+			break;
+		default:
+			return 0;
+			break;
+		}
 	}
-
-
-
+	return 1;
 };
 
 int ReadRequest(int fd, int len, char* sentence) {
