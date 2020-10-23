@@ -86,10 +86,6 @@ void* EstablishConnection(void* params)
 	HandleCommand(connectionData);
 }
 
-struct Request SetRequest(char* sentence) {
-	// TODO
-};
-
 void Login(struct ThreadParam* data) {
 	int connfd = data->connfd;
 	char* sentence = data->sentence;
@@ -97,7 +93,7 @@ void Login(struct ThreadParam* data) {
 	// USER
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		data->request = SetRequest(sentence);
+		SetRequest(data);
 		if (data->request.type == USER) {
 			USER_Handler(data);
 			break;
@@ -113,7 +109,7 @@ void Login(struct ThreadParam* data) {
 	// PASS
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		data->request = SetRequest(sentence);
+		SetRequest(data);
 		if (data->request.type == PASS) {
 			PASS_Handler(data);
 			break;
@@ -133,7 +129,7 @@ void HandleCommand(struct ThreadParam* data) {
 
 	while(1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		data->request = SetRequest(sentence);
+		SetRequest(data);
 		switch (data->request.type) {
 			case RETR:
 				RETR_Handler(data);

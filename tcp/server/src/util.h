@@ -12,6 +12,61 @@
 #include "global.h"
 #include "data_structure.h"
 
+int SetRequest(struct ThreadParam* data) {
+	// CWD lalala
+	char sentence[SENTENCE_LENGTH] = strcmp(data->sentence);
+	int cmdLength = -1;
+	char* argPtr;
+	for (int i = 0; i < strlen(sentence); i++) {
+		if (sentence[i] != ' ') {
+			sentence[i] = toupper(sentence[i]);
+			continue;
+		}
+		cmdLength = i;
+		sentence[i] = '\0';
+		argPtr = &(sentence[i+1]);
+		break;
+	}
+	if (cmdLength < 0) {
+		cmdLength = strlen(sentence);
+	}
+	if (cmdLength > 4) {
+		printf("command too long.\n");
+		return 0;
+	}
+
+	// command has argument
+	if (sentence[cmdLength + 1] != '\0') {
+		strcpy(data->request.arg, argPtr);
+	}
+
+	if (cmdLength == 3) {
+		switch (sentence[0])
+		{
+		case 'M':
+			/* code */
+			break;
+		case 'C':
+			/* code */
+			break;
+		case 'P':
+			/* code */
+			break;
+		case 'R':
+			/* code */
+			break;
+		default:
+			break;
+		}
+	}
+	else if (cmdLength == 4) {
+
+	}
+
+
+
+};
+
 int ReadRequest(int fd, int len, char* sentence) {
 	int p = 0;
 	while (1) {
@@ -118,7 +173,7 @@ int WriteFile(struct ThreadParam* data) {
 
 int MakeDir(struct ThreadParam* data) {
 	// TODO
-	if (chdir(data->cwd) == 0) {
+	if (chdir(data->currDir) == 0) {
 		if (mkdir(PathName, 0) == 0) {
 			return !chdir(rootPath);
 		}
