@@ -154,10 +154,6 @@ int ReadRequest(int fd, int len, char* sentence) {
 		}
 	}
 	return 1;
-	};
-
-int ReadData() {
-
 };
 
 int WriteResponse(int fd, int len, const char* sentence) {
