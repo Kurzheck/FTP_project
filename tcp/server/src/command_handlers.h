@@ -128,19 +128,62 @@ PASV_failed:
 int RETR_Handler(struct ThreadParam* data) {
 	if (data->dataConnectionMode == NO_CONNECTION) {
 		printf("no connection, connfd = %d\n", data->connfd);
-		char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
+		goto RETR_connection_failed;
+	}
+
+	char filePath[PATH_LENGTH] = {0};
+	if (!AbsPath(filePath, rootPath, data->currDir, data->request.arg)) {
+		char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 
-	char responseStr[RESPONSE_LENGTH] = "150 RETR start.\r\n";
 	if (data->dataConnectionMode == PORT_MODE) { // connect()
-		// TODO
+		struct sockaddr_in addr;
+		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+			printf("Error socket(): %s(%d)\n", strerror(errno), errno);
+			goto RETR_connection_failed;
+		}
+
+		memset(&addr, 0, sizeof(addr));
+		addr.sin_family = AF_INET;
+		addr.sin_port = htons(data->clientAddr.port);
+		addr.sin_addr.s_addr = htonl(INADDR_ANY);
+		if (inet_pton(AF_INET, data->clientAddr.IP, &addr.sin_addr) == -1) {			
+			printf("Error inet_pton(): %s(%d)\n", strerror(errno), errno);
+			goto RETR_connection_failed;
+		}
+		if (connect(data->datafd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+			printf("Error connect(): %s(%d)\n", strerror(errno), errno);
+			// CloseConnection(data->datafd);
+			// data->datafd = -1;
+			goto RETR_connection_failed;
+		}
 	}
+
 	else if (data->dataConnectionMode == PASV_MODE) { // accept()
-		// TODO
+		if ((data->datafd = accept(data->listenfd, NULL, NULL)) == -1) {
+			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
+			// CloseConnection(data->listenfd);
+			// data->listenfd = -1;
+			goto RETR_connection_failed;
+		}
 	}
-	WriteFile(data);
-	// TODO
+	// data connection established
+	char responseStr[RESPONSE_LENGTH] = "150 RETR start.\r\n";
+	if (!WriteResponse(data->connfd, strlen(responseStr), responseStr)) {
+		return 0;
+	}
+	if (WriteFile(data)) { // file transfer succeeded
+		strcpy(responseStr, "226 transmission finished.\r\n");
+	}
+	strcpy(responseStr, "451 transmission failed".\r\n");
+	CloseConnection(data->listenfd);
+	CloseConnection(data->datafd);
+	data->dataConnectionMode = NO_CONNECTION;
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+RETR_connection_failed:
+	char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 // read()
@@ -167,8 +210,8 @@ int QUIT_Handler(struct ThreadParam* data) {
 	char responseStr[RESPONSE_LENGTH] = "221 connection closed, goodbye.\r\n";
 	CloseConnection(data->connfd);
 	CloseConnection(data->datafd);
-	data->connfd = -1;
-	data->datafd = -1;
+	// data->connfd = -1;
+	// data->datafd = -1;
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
