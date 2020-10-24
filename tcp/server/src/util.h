@@ -226,11 +226,30 @@ int ParseIPPort(struct ClientAddr* addr, char* str) {
 	return 1;
 };
 
-int ReadFile(struct ThreadParam* data) {
-	// TODO
+int ReadFile(struct ThreadParam* data, const char* filePath) {
+	FILE* file = fopen(filePath, "w");
+	if (!file) {
+		return 0;
+	}
+	char dataBuffer[BUFFER_SIZE] = {0};
+	int total = 0;
+	int readLen;
+	while (1) {
+		int readLen = read(data->datafd, dataBuffer, BUFFER_SIZE);
+		if (readLen < 0) {
+			free(file);
+			return 0;
+		}
+		if (readLen == 0) {
+			break;
+		}
+		fwrite(dataBuffer, sizeof(char), readLen, file);
+	}
+	free(file);
+	return 1;
 };
 
-int WriteFile(struct ThreadParam* data, char* filePath) {
+int WriteFile(struct ThreadParam* data, const char* filePath) {
 	FILE* file = fopen(filePath, "r");
 	if (!file) {
 		return 0;
