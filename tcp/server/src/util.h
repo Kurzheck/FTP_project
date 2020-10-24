@@ -251,3 +251,83 @@ int ChangeDir(struct ThreadParam* data) {
 int RemoveDir(struct ThreadParam* data) {
 	// TODO
 };
+
+int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
+	// root = /tmp; cwd = /file/text;
+	// param = ./lala/dada  relative
+	// param = /doc/news  absolute
+	// param = ../../mimimi  relative
+	if (!dst || !root || !cwd || !param) {
+		printf("get absolute path failed.\n");
+		return 0;
+	}
+
+	char tmp[PATH_LENGTH];
+	strcpy(tmp, root);
+	// remove '/' at root end
+	char* tmp_end = tmp + strlen(tmp);
+	if (*(tmp_end - 1) == '/') {
+		tmp_end--;
+		*(tmp_end) = '\0';
+	}
+	// now tmp is root absolute
+	if (param[0] != '/') { // param is relative
+		if (cwd[0] != '/') {
+			*(tmp_end) = '/';
+			tmp_end++;
+		}
+		strcpy(tmp_end, cwd);
+		tmp_end += strlen(cwd);
+		if (*(tmp_end - 1) == '/') {
+			tmp_end--;
+			*(tmp_end) = '\0';
+		}
+		// now tmp is cwd absolute
+	}
+	// ready to concat param
+	char* param_end = param + strlen(param);
+	char* p = param;
+	while (p < param_end) {
+		char* slashPos = strchr(p, '/');
+		if (!slashPos) {
+			slashPos = param_end;
+		}
+		*slashPos = '\0';
+		if (strcmp(p, ".") == 0 || slashPos == param) {
+			p = slashPos + 1;
+			continue;
+		}
+		if (*p == '.' && *(p+1) == '.' && *(p+2) == '.') { // invalid
+			return 0;
+		}
+		if (*p == '.' && *(p+1) == '.') {
+			while (tmp_end > tmp && *(tmp_end - 1) != '/') {
+				tmp_end--;
+			}
+			if (tmp_end == tmp) {
+				return 0;
+			}
+			tmp_end--;
+			*tmp_end = '\0';
+			p = slashPos + 1;
+			continue;
+		}
+		if (*(tmp_end-1) != '/') {
+			*tmp_end = '/';
+			tmp_end++;
+		}
+		strcpy(tmp_end, p);
+		tmp_end += slashPos - p;
+		p = slashPos + 1;
+	}
+
+	strcpy(dst, tmp);
+	if (dst[strlen(dst) - 1] == '/') {
+		dst[strlen(dst) - 1] = '\0';
+	}
+	printf("abs = %s\n", dst);
+	if (strlen(dst) < strlen(rootPath)) {
+		return 0;
+	}
+	return 1;
+}

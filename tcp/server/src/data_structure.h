@@ -46,7 +46,7 @@ struct ThreadParam {
 	int listenfd = -1; // for pasv
 	int dataPort = -1;
 	char sentence[SENTENCE_LENGTH] = {0};
-	char currDir[PATH_LENGTH] = 
+	char currDir[PATH_LENGTH] = {0}; // relative to rootPath
 	enum ClientState clientState = NO_USER;
 	enum DataConnectionMode dataConnectionMode = NO_CONNECTION;
 	struct Request request;
