@@ -185,8 +185,8 @@ int RandomPort() {
 char* AddrToString(int port) {
 	int p1 = port / 256;
 	int p2 = port % 256;
-
 	char ipStr[30] = serverIP;
+
 	for (int i = 0; i < 30; i++) {
 		if (ipStr[i] == '.') {
 			ipStr[i] = ',';
@@ -230,8 +230,22 @@ int ReadFile(struct ThreadParam* data) {
 	// TODO
 };
 
-int WriteFile(struct ThreadParam* data) {
-	// TODO
+int WriteFile(struct ThreadParam* data, char* filePath) {
+	FILE* file = fopen(filePath, "r");
+	if (!file) {
+		return 0;
+	}
+	char dataBuffer[BUFFER_SIZE] = {0};
+	while (!feof(file)) {
+		int readLen = fread(dataBuffer, sizeof(char), BUFFER_SIZE, file);
+		int total = 0;
+		int writeLen;
+		while ((writeLen = write(data->datafd, dataBuffer + total, readLen - total)) > 0) {
+			total += writeLen;
+		}
+	}
+	free(file);
+	return 1;
 };
 
 int MakeDir(struct ThreadParam* data) {

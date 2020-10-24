@@ -137,6 +137,14 @@ int RETR_Handler(struct ThreadParam* data) {
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 
+	struct stat s = {0};
+	stat(filePath, &s);
+	if (!(s.st_mode & S_IFREG))
+	{
+		char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+
 	if (data->dataConnectionMode == PORT_MODE) { // connect()
 		struct sockaddr_in addr;
 		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
@@ -176,9 +184,13 @@ int RETR_Handler(struct ThreadParam* data) {
 	if (WriteFile(data)) { // file transfer succeeded
 		strcpy(responseStr, "226 transmission finished.\r\n");
 	}
-	strcpy(responseStr, "451 transmission failed".\r\n");
+	else {
+		strcpy(responseStr, "451 transmission failed.\r\n");
+	}
 	CloseConnection(data->listenfd);
 	CloseConnection(data->datafd);
+	data->listenfd = -1;
+	data->datafd = -1;
 	data->dataConnectionMode = NO_CONNECTION;
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 RETR_connection_failed:
