@@ -139,8 +139,7 @@ int RETR_Handler(struct ThreadParam* data) {
 
 	struct stat s = {0};
 	stat(filePath, &s);
-	if (!(s.st_mode & S_IFREG))
-	{
+	if (!(s.st_mode & S_IFREG)) {
 		char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}

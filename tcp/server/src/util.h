@@ -268,17 +268,29 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 };
 
 int MakeDir(struct ThreadParam* data) {
-	// TODO
-	if (chdir(data->currDir) == 0) {
-		if (mkdir(PathName, 0) == 0) {
-			return !chdir(rootPath);
-		}
+	char filePath[PATH_LENGTH] = {0};
+	if (!AbsPath(filePath, rootPath, data->currDir, data->request.arg)) {
+		return 0;
+	}
+	if (mkdir(filePath, 0) == 0) {
+		return 1;
 	}
 	return 0;
 };
 
 int ChangeDir(struct ThreadParam* data) {
-	// TODO
+	char filePath[PATH_LENGTH] = {0};
+	if (!AbsPath(filePath, "/", data->currDir, data->request.arg)) {
+		return 0;
+	}
+	struct stat s = {0};
+	stat(filePath, &s);
+	// no such dir
+	if (!(s.st_mode & S_IFREG)) {
+		return 0;
+	}
+	strcpy(data->currDir, filePath);
+	return 1;
 };
 
 int RemoveDir(struct ThreadParam* data) {
@@ -359,8 +371,5 @@ int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
 		dst[strlen(dst) - 1] = '\0';
 	}
 	printf("abs = %s\n", dst);
-	if (strlen(dst) < strlen(rootPath)) {
-		return 0;
-	}
 	return 1;
 }
