@@ -193,6 +193,7 @@ void HandleCommand(struct ThreadParam* data) {
 	}
 };
 /*
+×÷ÒµÌá¹©µÄÔ­°æmainº¯Êý
 int main(int argc, char **argv) {
 	int listenfd, connfd;		//ï¿½ï¿½ï¿½ï¿½socketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½socketï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½
 	struct sockaddr_in addr;
