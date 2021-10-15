@@ -1,3 +1,5 @@
+#pragma once
+
 #define SENTENCE_LENGTH 1000
 #define PATH_LENGTH 256
 #define RESPONSE_LENGTH 256
