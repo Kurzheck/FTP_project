@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 
 #include <unistd.h>
@@ -15,7 +16,9 @@
 #include "data_structure.h"
 
 int SetRequest(struct ThreadParam* data) {
-	char sentence[SENTENCE_LENGTH] = strcmp(data->sentence);
+	// char sentence[SENTENCE_LENGTH] = strcmp(data->sentence);
+	char sentence[SENTENCE_LENGTH] = {0};
+	strcpy(sentence, data->sentence);
 	int cmdLength = -1;
 	char* argPtr;
 	for (int i = 0; i < strlen(sentence); i++) {
@@ -187,7 +190,8 @@ int RandomPort() {
 char* AddrToString(int port) {
 	int p1 = port / 256;
 	int p2 = port % 256;
-	char ipStr[30] = serverIP;
+	char ipStr[30]; // = serverIP;
+	strcpy(ipStr, serverIP);
 
 	for (int i = 0; i < 30; i++) {
 		if (ipStr[i] == '.') {
@@ -205,7 +209,7 @@ int ParseIPPort(struct ClientAddr* addr, char* str) {
 	strcpy(addr->IP, str);
 	int comma[5];
 	int j = 0;
-	for (int i = 0; i < strlen(str), i++) {
+	for (int i = 0; i < strlen(str); i++) {
 		if (str[i] == ',') {
 			comma[j] = 0;
 			addr->IP[i] = '.';

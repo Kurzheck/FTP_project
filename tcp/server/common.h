@@ -20,14 +20,14 @@ int ArgHandler(int argc, char **argv) {
 		return 1;
 	}
 	else if (argc == 3) {
-		if (strcmp(arg[1], "-port") == 0) {
+		if (strcmp(argv[1], "-port") == 0) {
 			int port = atoi(argv[2]);
 			if (port >= 0 && port < 65535) {
 				listenPort = port;
 				return 1;
 			}
 		}
-		else if (strcmp(arg[1], "-root") == 0) {
+		else if (strcmp(argv[1], "-root") == 0) {
 			strcpy(rootPath, argv[2]);
 			return 1;
 		}
@@ -153,7 +153,7 @@ void HandleCommand(struct ThreadParam* data) {
 			case QUIT:
 				QUIT_Handler(data);
 				free(data);
-				phtread_exit(0);
+				pthread_exit(0);
 				break;
 			case SYST:
 				SYST_Handler(data);

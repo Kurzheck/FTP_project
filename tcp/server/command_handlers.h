@@ -22,35 +22,42 @@ int INVALID_Handler(struct ThreadParam* data) {
 
 int USER_Handler(struct ThreadParam* data) {
 	// anonymous
+	char responseStr[RESPONSE_LENGTH] = {0};
 	if (strcmp(data->request.arg, "anonymous") == 0) {
 		printf("USER anonymous received, connfd = %d\n", data->connfd);
 		data->clientState = HAS_USER;
-		char responseStr[RESPONSE_LENGTH] = "331 USER ok, PASS please.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "331 USER ok, PASS please.\r\n";
+		strcpy(responseStr, "331 USER ok, PASS please.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 	else {
 		printf("Error username(): %s(%d)\n", strerror(errno), errno);
-		char responseStr[RESPONSE_LENGTH] = "530 USER needs to be anonymous.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "530 USER needs to be anonymous.\r\n";
+		strcpy(responseStr, "530 USER needs to be anonymous.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 };
 
 int PASS_Handler(struct ThreadParam* data) {
+	char responseStr[RESPONSE_LENGTH] = {0};
 	switch (data->clientState) {
 		case NO_USER:
 			printf("Error pass(): %s(%d)\n", strerror(errno), errno);
-			char responseStr[RESPONSE_LENGTH] = "503 needs USER first.\r\n";
+			strcpy(responseStr, "503 needs USER first.\r\n");
+			// char responseStr[RESPONSE_LENGTH] = "503 needs USER first.\r\n";
 			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 			break;
 		case HAS_USER:
 			printf("password received, connfd = %d\n", data->connfd);
-			char responseStr[RESPONSE_LENGTH] = "230 login successful, enjoy the server.\r\n";
+			strcpy(responseStr, "230 login successful, enjoy the server.\r\n");
+			// char responseStr[RESPONSE_LENGTH] = "230 login successful, enjoy the server.\r\n";
 			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 			break;
 		case HAS_PASS:
 		default:
 			printf("already logged in, connfd = %d\n", data->connfd);
-			char responseStr[RESPONSE_LENGTH] = "530 already logged in.\r\n";
+			strcpy(responseStr, "530 already logged in.\r\n");
+			// char responseStr[RESPONSE_LENGTH] = "530 already logged in.\r\n";
 			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 			break;
 	}
@@ -64,9 +71,9 @@ int PORT_Handler(struct ThreadParam* data) {
 	data->datafd = -1;
 	data->listenfd = -1;
 
-	char responseStr[RESPONSE_LENGTH]
-	if (ParseIPPort(&(data->clientAddr), &(data->request.arg)) {
-		printf("port mode on, connfd = %d\n", data->connfd);s
+	char responseStr[RESPONSE_LENGTH] = {0};
+	if (ParseIPPort(&(data->clientAddr), &(data->request.arg))) {
+		printf("port mode on, connfd = %d\n", data->connfd);// s
 		data->dataConnectionMode = PORT_MODE;
 		strcpy(responseStr, "200 port success.\r\n");
 	}
@@ -98,6 +105,7 @@ int PASV_Handler(struct ThreadParam* data) {
 	addr.sin_port = htons(data->dataPort);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
+	char responseStr[RESPONSE_LENGTH] = {0};
 	if (inet_pton(AF_INET, serverIP, &addr.sin_addr) == -1) {
 		printf("Error inet_pton(): %s(%d)\n", strerror(errno), errno);
 		goto PASV_failed;
@@ -115,19 +123,21 @@ int PASV_Handler(struct ThreadParam* data) {
 
 	printf("passive mode on, connfd = %d\n", data->connfd);
 	char addrStr[30];
-	strcpy(addrStr, AddrToString());
-	char responseStr[RESPONSE_LENGTH];
+	strcpy(addrStr, AddrToString((int)(addr.sin_port)));
+	// char responseStr[RESPONSE_LENGTH];
 	sprintf(responseStr, "227 passive mode (%s).\r\n", addrStr);
 
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 
 PASV_failed:
-	char responseStr[RESPONSE_LENGTH] = "425 PASV command failed.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "425 PASV command failed.\r\n";
+	strcpy(responseStr, "425 PASV command failed.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 // write()
 int RETR_Handler(struct ThreadParam* data) {
+	char responseStr[RESPONSE_LENGTH] = {0};
 	if (data->dataConnectionMode == NO_CONNECTION) {
 		printf("no connection, connfd = %d\n", data->connfd);
 		goto RETR_connection_failed;
@@ -135,14 +145,16 @@ int RETR_Handler(struct ThreadParam* data) {
 
 	char filePath[PATH_LENGTH] = {0};
 	if (!AbsPath(filePath, rootPath, data->currDir, data->request.arg)) {
-		char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
+		strcpy(responseStr, "530 invalid path.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 
 	struct stat s = {0};
 	stat(filePath, &s);
 	if (!(s.st_mode & S_IFREG)) {
-		char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
+		strcpy(responseStr, "530 invalid path.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 
@@ -178,7 +190,8 @@ int RETR_Handler(struct ThreadParam* data) {
 		}
 	}
 	// data connection established
-	char responseStr[RESPONSE_LENGTH] = "150 RETR start.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "150 RETR start.\r\n";
+	strcpy(responseStr, "150 RETR start.\r\n");
 	if (!WriteResponse(data->connfd, strlen(responseStr), responseStr)) {
 		return 0;
 	}
@@ -195,12 +208,14 @@ int RETR_Handler(struct ThreadParam* data) {
 	data->dataConnectionMode = NO_CONNECTION;
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 RETR_connection_failed:
-	char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
+	strcpy(responseStr, "425 no data connection.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 // read()
 int STOR_Handler(struct ThreadParam* data) {
+	char responseStr[RESPONSE_LENGTH] = {0};
 	if (data->dataConnectionMode == NO_CONNECTION) {
 		printf("no connection, connfd = %d\n", data->connfd);
 		goto STOR_connection_failed;
@@ -208,7 +223,8 @@ int STOR_Handler(struct ThreadParam* data) {
 
 	char filePath[PATH_LENGTH] = {0};
 	if (!AbsPath(filePath, rootPath, data->currDir, data->request.arg)) {
-		char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "530 invalid path.\r\n";
+		strcpy(responseStr, "530 invalid path.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 
@@ -244,7 +260,8 @@ int STOR_Handler(struct ThreadParam* data) {
 		}
 	}
 	// data connection established
-	char responseStr[RESPONSE_LENGTH] = "150 STOR start.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "150 STOR start.\r\n";
+	strcpy(responseStr, "150 STOR start.\r\n");
 	if (!WriteResponse(data->connfd, strlen(responseStr), responseStr)) {
 		return 0;
 	}
@@ -261,7 +278,8 @@ int STOR_Handler(struct ThreadParam* data) {
 	data->dataConnectionMode = NO_CONNECTION;
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 STOR_connection_failed:
-	char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
+	strcpy(responseStr, "425 no data connection.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
@@ -282,34 +300,43 @@ int SYST_Handler(struct ThreadParam* data) {
 };
 
 int TYPE_Handler(struct ThreadParam* data) {
+	char responseStr[RESPONSE_LENGTH] = {0};
 	if (strcmp(data->request.arg, "I") == 0) {
-		char responseStr[RESPONSE_LENGTH] = "200 type set to I.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "200 type set to I.\r\n";
+		strcpy(responseStr, "200 type set to I.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
-	char responseStr[RESPONSE_LENGTH] = "425 invalid type.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "425 invalid type.\r\n";
+	strcpy(responseStr, "425 invalid type.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int MKD_Handler(struct ThreadParam* data) {
+	char responseStr[RESPONSE_LENGTH] = {0};
 	if (MakeDir(data)) {
-		char responseStr[RESPONSE_LENGTH] = "250 MKD succeeded.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "250 MKD succeeded.\r\n";
+		strcpy(responseStr, "250 MKD succeeded.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
-	char responseStr[RESPONSE_LENGTH] = "550 MKD failed.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "550 MKD failed.\r\n";
+	strcpy(responseStr, "550 MKD failed.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int CWD_Handler(struct ThreadParam* data) {
+	char responseStr[RESPONSE_LENGTH] = {0};
 	if (ChangeDir(data)) {
-		char responseStr[RESPONSE_LENGTH] = "250 CWD succeeded.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "250 CWD succeeded.\r\n";
+		strcpy(responseStr, "250 CWD succeeded.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
-	char responseStr[RESPONSE_LENGTH] = "550 CWD failed.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "550 CWD failed.\r\n";
+	strcpy(responseStr, "550 CWD failed.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int PWD_Handler(struct ThreadParam* data) {
-	char responseStr[RESPONSE_LENGTH];
+	char responseStr[RESPONSE_LENGTH] = {0};
 	sprintf(responseStr, "257 \"%s\".\r\n", data->currDir);
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
@@ -319,11 +346,14 @@ int LIST_Handler(struct ThreadParam* data) {
 };
 
 int RMD_Handler(struct ThreadParam* data) {
+	char responseStr[RESPONSE_LENGTH] = {0};
 	if (RemoveDir(data)) {
-		char responseStr[RESPONSE_LENGTH] = "250 RMD succeeded.\r\n";
+		// char responseStr[RESPONSE_LENGTH] = "250 RMD succeeded.\r\n";
+		strcpy(responseStr, "250 RMD succeeded.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
-	char responseStr[RESPONSE_LENGTH] = "550 RMD failed.\r\n";
+	// char responseStr[RESPONSE_LENGTH] = "550 RMD failed.\r\n";
+	strcpy(responseStr, "550 RMD failed.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
