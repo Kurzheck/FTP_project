@@ -1,7 +1,9 @@
-#pragma once
+#ifndef CONMMAND_HANDLERS
+#define CONMMAND_HANDLERS
 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include<arpa/inet.h>
 
 #include <unistd.h>
 #include <errno.h>
@@ -72,7 +74,7 @@ int PORT_Handler(struct ThreadParam* data) {
 	data->listenfd = -1;
 
 	char responseStr[RESPONSE_LENGTH] = {0};
-	if (ParseIPPort(&(data->clientAddr), &(data->request.arg))) {
+	if (ParseIPPort(&(data->clientAddr), data->request.arg)) {
 		printf("port mode on, connfd = %d\n", data->connfd);// s
 		data->dataConnectionMode = PORT_MODE;
 		strcpy(responseStr, "200 port success.\r\n");
@@ -364,3 +366,5 @@ int RNFR_Handler(struct ThreadParam* data) {
 int RNTO_Handler(struct ThreadParam* data) {
 
 };
+
+#endif

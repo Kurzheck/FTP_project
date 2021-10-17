@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DATA_STRUCTURE
+#define DATA_STRUCTURE
 
 #include "global.h"
 enum RequestType {
@@ -54,3 +55,5 @@ struct ThreadParam {
 	struct Request request;
 	struct ClientAddr clientAddr;
 };
+
+#endif

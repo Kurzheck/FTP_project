@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTIL
+#define UTIL
 
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -11,6 +12,7 @@
 #include <string.h>
 #include <memory.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "global.h"
 #include "data_structure.h"
@@ -204,7 +206,7 @@ char* AddrToString(int port) {
 	return returnStr;
 };
 
-int ParseIPPort(struct ClientAddr* addr, char* str) {
+int ParseIPPort(struct ClientAddr* addr, char str[]) {
 	// "192,168,0,105,255,254"
 	strcpy(addr->IP, str);
 	int comma[5];
@@ -238,8 +240,8 @@ int ReadFile(struct ThreadParam* data, const char* filePath) {
 		return 0;
 	}
 	char dataBuffer[BUFFER_SIZE] = {0};
-	int total = 0;
-	int readLen;
+	// int total = 0;
+	// int readLen;
 	while (1) {
 		int readLen = read(data->datafd, dataBuffer, BUFFER_SIZE);
 		if (readLen < 0) {
@@ -271,36 +273,6 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	}
 	free(file);
 	return 1;
-};
-
-int MakeDir(struct ThreadParam* data) {
-	char filePath[PATH_LENGTH] = {0};
-	if (!AbsPath(filePath, rootPath, data->currDir, data->request.arg)) {
-		return 0;
-	}
-	if (mkdir(filePath, 0) == 0) {
-		return 1;
-	}
-	return 0;
-};
-
-int ChangeDir(struct ThreadParam* data) {
-	char filePath[PATH_LENGTH] = {0};
-	if (!AbsPath(filePath, "/", data->currDir, data->request.arg)) {
-		return 0;
-	}
-	struct stat s = {0};
-	stat(filePath, &s);
-	// no such dir
-	if (!(s.st_mode & S_IFREG)) {
-		return 0;
-	}
-	strcpy(data->currDir, filePath);
-	return 1;
-};
-
-int RemoveDir(struct ThreadParam* data) {
-	// TODO
 };
 
 int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
@@ -379,3 +351,35 @@ int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
 	printf("abs = %s\n", dst);
 	return 1;
 }
+
+int MakeDir(struct ThreadParam* data) {
+	char filePath[PATH_LENGTH] = {0};
+	if (!AbsPath(filePath, rootPath, data->currDir, data->request.arg)) {
+		return 0;
+	}
+	if (mkdir(filePath, 0) == 0) {
+		return 1;
+	}
+	return 0;
+};
+
+int ChangeDir(struct ThreadParam* data) {
+	char filePath[PATH_LENGTH] = {0};
+	if (!AbsPath(filePath, "/", data->currDir, data->request.arg)) {
+		return 0;
+	}
+	struct stat s = {0};
+	stat(filePath, &s);
+	// no such dir
+	if (!(s.st_mode & S_IFREG)) {
+		return 0;
+	}
+	strcpy(data->currDir, filePath);
+	return 1;
+};
+
+int RemoveDir(struct ThreadParam* data) {
+	// TODO
+};
+
+#endif

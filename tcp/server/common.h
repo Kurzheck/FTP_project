@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COMMON
+#define COMMON
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -53,33 +54,8 @@ int ArgHandler(int argc, char **argv) {
 	return 0;
 };
 
-int SocketInit() {
-	struct sockaddr_in addr;
-
-	if ((listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
-		return 0;
-	}
-	
-	// set ip and port
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(listenPort);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	
-	// bind socket with ip and port
-	if (bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
-		return 0;
-	}
-	
-	// max client number
-	if (listen(listenfd, 10) == -1) {
-		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
-		return 0;
-	}
-	return 1;
-};
+void Login(struct ThreadParam* data);
+void HandleCommand(struct ThreadParam* data);
 
 void* EstablishConnection(void* params)
 {
@@ -153,8 +129,10 @@ void HandleCommand(struct ThreadParam* data) {
 			case QUIT:
 				QUIT_Handler(data);
 				free(data);
-				pthread_exit(0);
-				break;
+				// pthread_exit(0);
+				//break;
+				close(connfd);
+				return;
 			case SYST:
 				SYST_Handler(data);
 				break;
@@ -279,3 +257,5 @@ int main(int argc, char **argv) {
 	close(listenfd);
 }
 */
+
+#endif
