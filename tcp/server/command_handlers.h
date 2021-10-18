@@ -24,8 +24,13 @@ int INVALID_Handler(struct ThreadParam* data) {
 
 int USER_Handler(struct ThreadParam* data) {
 	// anonymous
+	//printf("enter user_handler\n");
+	//fflush(stdout);
+	printf("request arg = %s\n", data->request.arg);
+	printf("arg length = %ld\n", strlen(data->request.arg));
+	//fflush(stdout);
 	char responseStr[RESPONSE_LENGTH] = {0};
-	if (strcmp(data->request.arg, "anonymous") == 0) {
+	if (!strcmp(data->request.arg, "anonymous")) {
 		printf("USER anonymous received, connfd = %d\n", data->connfd);
 		data->clientState = HAS_USER;
 		// char responseStr[RESPONSE_LENGTH] = "331 USER ok, PASS please.\r\n";

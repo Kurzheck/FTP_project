@@ -60,6 +60,19 @@ void HandleCommand(struct ThreadParam* data);
 void* EstablishConnection(void* params)
 {
 	struct ThreadParam* connectionData = (struct ThreadParam*)params;
+	int connfd = connectionData->connfd;
+	printf("connect\n");
+	fflush(stdout);
+	char responseStr[RESPONSE_LENGTH] = "220 zyh Anonymous FTP server ready.\r\n";
+	if (!WriteResponse(connfd, strlen(responseStr), responseStr))
+	{
+		printf("exit thread\n");
+		fflush(stdout);
+		sleep(2);
+		free(connectionData);
+		close(connfd);
+		return 0;
+	}
 	Login(connectionData);
 	HandleCommand(connectionData);
 }
@@ -67,15 +80,20 @@ void* EstablishConnection(void* params)
 void Login(struct ThreadParam* data) {
 	int connfd = data->connfd;
 	char* sentence = data->sentence;
-
+	printf("enter login while loop...\n");
+	fflush(stdout);
 	// USER
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		if (SetRequest(data)) {
+		if (!SetRequest(data)) {
+			printf("invalid command\n");
+			fflush(stdout);
 			INVALID_Handler(data);
 			continue;
 		}
 		if (data->request.type == USER) {
+			printf("repuest type == USER\n");
+			fflush(stdout);
 			USER_Handler(data);
 			if (data->clientState == HAS_USER)
 				break;

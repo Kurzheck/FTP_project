@@ -21,6 +21,8 @@ int SetRequest(struct ThreadParam* data) {
 	// char sentence[SENTENCE_LENGTH] = strcmp(data->sentence);
 	char sentence[SENTENCE_LENGTH] = {0};
 	strcpy(sentence, data->sentence);
+	printf("sentence: %s\n", sentence);
+	fflush(stdout);
 	int cmdLength = -1;
 	char* argPtr;
 	for (int i = 0; i < strlen(sentence); i++) {
@@ -45,6 +47,19 @@ int SetRequest(struct ThreadParam* data) {
 	if (sentence[cmdLength + 1] != '\0') {
 		strcpy(data->request.arg, argPtr);
 	}
+	for (int i = strlen(argPtr)-1; i > 0; i--)
+	{
+		if (argPtr[i] == '\n'
+			|| argPtr[i] == ' '
+			|| argPtr[i] == '\r'
+			|| argPtr[i] == '\t')
+		{
+			data->request.arg[i] = '\0';
+			continue;
+		}
+		break;
+	}
+
 
 	if (cmdLength == 3) {
 		switch (sentence[0])
@@ -165,6 +180,8 @@ int ReadRequest(int fd, int len, char* sentence) {
 
 int WriteResponse(int fd, int len, const char* sentence) {
 	int p = 0;
+	printf("enter writeresponse loop\n");
+	fflush(stdout);
 	while (p < len) {
 		int n = write(fd, sentence + p, len - p);
 		if (n < 0) {
@@ -175,6 +192,8 @@ int WriteResponse(int fd, int len, const char* sentence) {
 			p += n;
 		}			
 	}
+	printf("loop ends\n");
+	fflush(stdout);
 	return 1;
 };
 
