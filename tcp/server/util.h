@@ -171,6 +171,7 @@ int ReadRequest(int fd, int len, char* sentence) {
 		else {
 			p += n;
 			if (sentence[p - 1] == '\n') {
+				sentence[p-1] = '\0'; // TODO ?? delete this line?
 				break;
 			}
 		}

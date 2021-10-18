@@ -46,6 +46,7 @@ int USER_Handler(struct ThreadParam* data) {
 };
 
 int PASS_Handler(struct ThreadParam* data) {
+	printf("enter PASS, password = %s.\n", data->request.arg);
 	char responseStr[RESPONSE_LENGTH] = {0};
 	switch (data->clientState) {
 		case NO_USER:

@@ -109,11 +109,13 @@ void Login(struct ThreadParam* data) {
 	// PASS
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		if (SetRequest(data)) {
+		if (!SetRequest(data)) {
+			printf("invalid command\n");
 			INVALID_Handler(data);
 			continue;
 		}
 		if (data->request.type == PASS) {
+			printf("repuest type == PASS\n");
 			PASS_Handler(data);
 			if (data->clientState == HAS_PASS)
 				break;
