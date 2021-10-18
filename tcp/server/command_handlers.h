@@ -298,11 +298,12 @@ STOR_connection_failed:
 int QUIT_Handler(struct ThreadParam* data) {
 	printf("quit, connfd = %d\n", data->connfd);
 	char responseStr[RESPONSE_LENGTH] = "221 connection closed, goodbye.\r\n";
+	WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	CloseConnection(data->connfd);
 	CloseConnection(data->datafd);
 	// data->connfd = -1;
 	// data->datafd = -1;
-	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	return 1;
 };
 
 int SYST_Handler(struct ThreadParam* data) {
