@@ -130,12 +130,14 @@ void Login(struct ThreadParam* data) {
 };
 
 void HandleCommand(struct ThreadParam* data) {
+	printf("enter handle command\n");
 	int connfd = data->connfd;
 	char* sentence = data->sentence;
 
 	while(1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		if (SetRequest(data)) {
+		printf("type = %d.\n", data->request.type);
+		if (!SetRequest(data)) {
 			INVALID_Handler(data);
 			continue;
 		}

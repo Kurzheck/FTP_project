@@ -19,7 +19,10 @@
 
 int INVALID_Handler(struct ThreadParam* data) {
 	// TODO
-	return 0;
+	char responseStr[RESPONSE_LENGTH] = {0};
+	printf("invalid command.\n");
+	strcpy(responseStr, "500 invalid command.\r\n");
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 }
 
 int USER_Handler(struct ThreadParam* data) {
