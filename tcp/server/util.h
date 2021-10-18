@@ -26,7 +26,10 @@ int SetRequest(struct ThreadParam* data) {
 	int cmdLength = -1;
 	char* argPtr;
 	for (int i = 0; i < strlen(sentence); i++) {
-		if (sentence[i] != ' ') {
+		if (sentence[i] != ' ' &&
+		sentence[i] != '\n' &&
+		sentence[i] != '\r' &&
+		sentence[i] != '\t') {
 			sentence[i] = toupper(sentence[i]);
 			continue;
 		}
@@ -38,6 +41,7 @@ int SetRequest(struct ThreadParam* data) {
 	if (cmdLength < 0) {
 		cmdLength = strlen(sentence);
 	}
+	printf("cmd length = %d\n", cmdLength);
 	if (cmdLength > 4) {
 		printf("command too long.\n");
 		return 0;
@@ -50,9 +54,9 @@ int SetRequest(struct ThreadParam* data) {
 	for (int i = strlen(argPtr)-1; i > 0; i--)
 	{
 		if (argPtr[i] == '\n'
-			|| argPtr[i] == ' '
-			|| argPtr[i] == '\r'
-			|| argPtr[i] == '\t')
+		|| argPtr[i] == ' '
+		|| argPtr[i] == '\r'
+		|| argPtr[i] == '\t')
 		{
 			data->request.arg[i] = '\0';
 			continue;

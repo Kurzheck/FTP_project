@@ -58,6 +58,7 @@ int PASS_Handler(struct ThreadParam* data) {
 		case HAS_USER:
 			printf("password received, connfd = %d\n", data->connfd);
 			strcpy(responseStr, "230 login successful, enjoy the server.\r\n");
+			data->clientState = HAS_PASS;
 			// char responseStr[RESPONSE_LENGTH] = "230 login successful, enjoy the server.\r\n";
 			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 			break;
