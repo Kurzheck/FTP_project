@@ -18,7 +18,7 @@
 #include "data_structure.h"
 
 int INVALID_Handler(struct ThreadParam* data) {
-	// TODO
+	// TODO maybe
 	char responseStr[RESPONSE_LENGTH] = {0};
 	printf("invalid command.\n");
 	strcpy(responseStr, "500 invalid command.\r\n");
@@ -355,6 +355,35 @@ int PWD_Handler(struct ThreadParam* data) {
 };
 
 int LIST_Handler(struct ThreadParam* data) {
+	// TODO add login authorization
+	char responseStr[RESPONSE_LENGTH] = {0};
+	char lsDir[PATH_LENGTH] = {0};
+	// no arguments
+	if (strlen(data->request.arg) < 1)
+	{
+		strcpy(lsDir, data->currDir);
+	}
+	else
+	{
+		if (!AbsPath(lsDir, rootPath, data->currDir, data->request.arg))
+		{
+			strcpy(responseStr, "530 invalid path.\r\n");
+			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+		}
+	}
+
+	// non exist
+	struct stat s = {0};
+	stat(lsDir, &s);
+	if (!(s.st_mode & S_IFDIR))
+	{
+		strcpy(responseStr, "530 invalid path.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+
+
+
+	// TODO
 
 };
 
