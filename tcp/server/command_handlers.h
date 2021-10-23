@@ -364,17 +364,10 @@ int LIST_Handler(struct ThreadParam* data) {
 	char responseStr[RESPONSE_LENGTH] = {0};
 	char lsDir[PATH_LENGTH] = {0};
 	// no arguments
-	if (strlen(data->request.arg) < 1)
+	if (!AbsPath(lsDir, rootPath, data->currDir, data->request.arg))
 	{
-		strcpy(lsDir, data->currDir);
-	}
-	else
-	{
-		if (!AbsPath(lsDir, rootPath, data->currDir, data->request.arg))
-		{
-			strcpy(responseStr, "530 invalid path.\r\n");
-			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
-		}
+		strcpy(responseStr, "530 invalid path.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 	printf("ls dir is %s\n", lsDir);
 

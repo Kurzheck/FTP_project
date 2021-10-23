@@ -52,7 +52,8 @@ int main(int argc, char **argv) {
 		params->datafd = params->listenfd = params->dataPort = -1;
 		memset(params->sentence, 0, SENTENCE_LENGTH);
 		memset(params->currDir, 0, PATH_LENGTH);
-		strcpy(params->currDir, rootPath);
+		strcpy(params->currDir, "/");
+		// strcpy(params->currDir, rootPath);
 		params->clientState = NO_USER;
 		params->dataConnectionMode = NO_CONNECTION;
 		memset(params->request.arg, 0, SENTENCE_LENGTH);
