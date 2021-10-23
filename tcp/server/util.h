@@ -9,6 +9,7 @@
 #include <errno.h>
 
 #include <ctype.h>
+#include <fcntl.h>
 #include <string.h>
 #include <memory.h>
 #include <stdio.h>
@@ -46,7 +47,7 @@ int SetRequest(struct ThreadParam* data) {
 		printf("command too long.\n");
 		return 0;
 	}
-
+	memset(data->request.arg, 0, SENTENCE_LENGTH);
 	// command has argument
 	if (sentence[cmdLength + 1] != '\0') {
 		strcpy(data->request.arg, argPtr);
@@ -63,7 +64,7 @@ int SetRequest(struct ThreadParam* data) {
 		}
 		break;
 	}
-
+	printf("arg = %s\n", data->request.arg);
 
 	if (cmdLength == 3) {
 		switch (sentence[0])
@@ -282,6 +283,29 @@ int ReadFile(struct ThreadParam* data, const char* filePath) {
 };
 
 int WriteFile(struct ThreadParam* data, const char* filePath) {
+	int fd = open(filePath, O_RDONLY);
+	if (fd < 0)
+	{
+		printf("file open error\n");
+		return 0;
+	}
+	lseek(fd, data->readPos, SEEK_SET);
+	char dataBuffer[BUFFER_SIZE] = {0};
+	int readLen;
+	while (1)
+	{
+		readLen = read(fd, dataBuffer, BUFFER_SIZE);
+		if (readLen == 0)
+		{
+			break;
+		}
+		write(data->datafd, dataBuffer, readLen);
+	}
+	// TODO close xxx
+
+
+	data->readPos = 0;
+	/*
 	FILE* file = fopen(filePath, "r");
 	if (!file) {
 		return 0;
@@ -297,6 +321,7 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	}
 	free(file);
 	return 1;
+	*/
 };
 
 int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
@@ -403,7 +428,27 @@ int ChangeDir(struct ThreadParam* data) {
 };
 
 int ListDir(const char *file, const char *dir)
-{}
+{
+	char command[PATH_LENGTH];
+	sprintf(command, "ls %s -lh", dir);
+	FILE *ls_output = popen(command, "r");
+	FILE *f = fopen(file, "w");
+
+	char buf[PATH_LENGTH];
+	while (1)
+	{
+		int num = fread(buf, 1, PATH_LENGTH, ls_output);
+		if (!num)
+		{
+			break;
+		}
+		fwrite(buf, 1, num, f);
+	}
+
+	fclose(f);
+	fclose(ls_output);
+	return 1;
+}
 
 int RemoveDir(struct ThreadParam* data) {
 	// TODO

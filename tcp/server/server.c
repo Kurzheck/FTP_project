@@ -58,6 +58,7 @@ int main(int argc, char **argv) {
 		memset(params->request.arg, 0, SENTENCE_LENGTH);
 		memset(params->clientAddr.IP, 0, 30);
 		params->clientAddr.port = -1;
+		params->readPos = 0;
 		// params->clientState = NO_USER;
 		// memset(&(params->sentence), 0, sizeof(params->sentence));
 		// memset(&(params->request), 0, sizeof(params->request));

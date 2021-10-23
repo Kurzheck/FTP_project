@@ -371,6 +371,7 @@ int LIST_Handler(struct ThreadParam* data) {
 			return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 		}
 	}
+	printf("ls dir is %s\n", lsDir);
 
 	// non exist
 	struct stat s = {0};
@@ -402,10 +403,21 @@ int LIST_Handler(struct ThreadParam* data) {
 		}
 	}
 	ListDir(lsTmpFile, lsDir);
-	
-
-	// TODO
-
+	if (data->dataConnectionMode == PASV_MODE)
+	{
+		data->datafd = accept(data->listenfd, NULL, NULL);
+	}
+	strcpy(responseStr, "150 LIST start.\r\n");
+	WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	printf("ready write\n");
+	fflush(stdout);
+	if (!WriteFile(data, lsTmpFile)) {
+		printf("error ls\n");
+	}
+	if(remove(lsTmpFile) < 0) {
+		printf("error remove\n");
+	}
+	return 1;
 };
 
 int RMD_Handler(struct ThreadParam* data) {

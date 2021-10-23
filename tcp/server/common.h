@@ -91,6 +91,7 @@ void Login(struct ThreadParam* data) {
 			INVALID_Handler(data);
 			continue;
 		}
+		// memset(data->sentence, 0, SENTENCE_LENGTH);
 		if (data->request.type == USER) {
 			printf("repuest type == USER\n");
 			fflush(stdout);

@@ -54,6 +54,7 @@ struct ThreadParam {
 	enum DataConnectionMode dataConnectionMode; // = NO_CONNECTION;
 	struct Request request;
 	struct ClientAddr clientAddr;
+	int readPos; // file read position
 };
 
 #endif
