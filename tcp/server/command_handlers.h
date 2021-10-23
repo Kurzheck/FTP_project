@@ -381,7 +381,28 @@ int LIST_Handler(struct ThreadParam* data) {
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 
-
+	char lsTmpFile[PATH_LENGTH] = {0};
+	strcpy(lsTmpFile, lsDir);
+	char *pos = lsTmpFile + strlen(lsTmpFile);
+	if (*(pos - 1) != '/')
+	{
+		*(pos++) = '/';
+		*(pos) = '\0';
+	}
+	*(pos++) = '.';
+	while (1)
+	{
+		*(pos++) = 't';
+		*pos = '\0';
+		struct stat ts = {0};
+		stat(lsTmpFile, &ts);
+		if (!S_ISDIR(ts.st_mode) && !S_ISREG(ts.st_mode))
+		{
+			break;
+		}
+	}
+	ListDir(lsTmpFile, lsDir);
+	
 
 	// TODO
 

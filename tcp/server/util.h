@@ -402,6 +402,9 @@ int ChangeDir(struct ThreadParam* data) {
 	return 1;
 };
 
+int ListDir(const char *file, const char *dir)
+{}
+
 int RemoveDir(struct ThreadParam* data) {
 	// TODO
 };
