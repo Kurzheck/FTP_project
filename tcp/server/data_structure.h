@@ -1,6 +1,6 @@
 #ifndef DATA_STRUCTURE
 #define DATA_STRUCTURE
-
+#include <netinet/in.h>
 #include "global.h"
 enum RequestType {
 	USER,
@@ -55,6 +55,7 @@ struct ThreadParam {
 	struct Request request;
 	struct ClientAddr clientAddr;
 	int readPos; // file read position
+	struct sockaddr_in dataAddr;
 };
 
 #endif

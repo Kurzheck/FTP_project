@@ -203,6 +203,8 @@ int WriteResponse(int fd, int len, const char* sentence) {
 	return 1;
 };
 
+
+// maybe delete?
 void CloseConnection(int fd) {
 	if (fd > -1) {
 		printf("close connection %d\n", fd);
@@ -231,15 +233,19 @@ char* AddrToString(int port) {
 	return returnStr;
 };
 
-int ParseIPPort(struct ClientAddr* addr, char str[]) {
+int ParseIPPort(struct ThreadParam* data) {
 	// "192,168,0,105,255,254"
-	strcpy(addr->IP, str);
+	printf("enter ParseIPPort\n");
+	char str[SENTENCE_LENGTH] = {0};
+	strcpy(str, data->request.arg);
+	strcpy(data->clientAddr.IP, str);
+	printf("IP = %s\n", data->clientAddr.IP);
 	int comma[5];
 	int j = 0;
 	for (int i = 0; i < strlen(str); i++) {
 		if (str[i] == ',') {
-			comma[j] = 0;
-			addr->IP[i] = '.';
+			comma[j] = i;
+			data->clientAddr.IP[i] = '.';
 			j++;
 		}
 		if (j == 5) {
@@ -249,13 +255,15 @@ int ParseIPPort(struct ClientAddr* addr, char str[]) {
 	if (j != 5) {
 		return 0;
 	}
-	addr->IP[comma[3]] = '\0';
-	addr->IP[comma[4]] = '\0';
-	char* p = &(addr->IP[comma[3]]);
+	data->clientAddr.IP[comma[3]] = '\0';
+	data->clientAddr.IP[comma[4]] = '\0';
+	printf("IP = %s\n", data->clientAddr.IP);
+	char* p = &(data->clientAddr.IP[comma[3]]);
 	int p1 = atoi(p + 1);
-	p = &(addr->IP[comma[4]]);
+	p = &(data->clientAddr.IP[comma[4]]);
 	int p2 = atoi(p + 1);
-	addr->port = p1 * 256 + p2;
+	printf("p1 = %d, p2 = %d\n", p1, p2);
+	data->clientAddr.port = p1 * 256 + p2;
 	return 1;
 };
 
@@ -283,28 +291,50 @@ int ReadFile(struct ThreadParam* data, const char* filePath) {
 };
 
 int WriteFile(struct ThreadParam* data, const char* filePath) {
+	printf("enter WriteFile\n");
+	char responseStr[RESPONSE_LENGTH] = {0};
 	int fd = open(filePath, O_RDONLY);
 	if (fd < 0)
 	{
 		printf("file open error\n");
 		return 0;
 	}
+
+	if (data->dataConnectionMode == PORT_MODE)
+	{
+		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
+		{
+			return 0;
+		}
+		if (connect(data->datafd, (struct sockaddr *)&(data->dataAddr), sizeof(data->dataAddr)) == -1)
+		{
+			close(data->datafd);
+			return 0;
+		}
+	}
+
 	lseek(fd, data->readPos, SEEK_SET);
 	char dataBuffer[BUFFER_SIZE] = {0};
 	int readLen;
+	printf("datafd=%d\n", data->datafd);
 	while (1)
 	{
 		readLen = read(fd, dataBuffer, BUFFER_SIZE);
+		// printf("readLen = %d\n", readLen);
 		if (readLen == 0)
 		{
 			break;
 		}
+		// printf("%s\n", dataBuffer);
 		write(data->datafd, dataBuffer, readLen);
 	}
-	// TODO close xxx
-
-
 	data->readPos = 0;
+	// TODO close xxx
+	close(fd);
+	close(data->datafd);
+	data->dataConnectionMode = NO_CONNECTION;
+	strcpy(responseStr, "226 transmission finished.\r\n");
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	/*
 	FILE* file = fopen(filePath, "r");
 	if (!file) {
@@ -429,6 +459,7 @@ int ChangeDir(struct ThreadParam* data) {
 
 int ListDir(const char *file, const char *dir)
 {
+	printf("enter ListDir\n");
 	char command[PATH_LENGTH];
 	sprintf(command, "ls %s -lh", dir);
 	FILE *ls_output = popen(command, "r");
@@ -443,6 +474,7 @@ int ListDir(const char *file, const char *dir)
 			break;
 		}
 		fwrite(buf, 1, num, f);
+		// printf("%s\n", buf);
 	}
 
 	fclose(f);

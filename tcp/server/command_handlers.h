@@ -84,9 +84,14 @@ int PORT_Handler(struct ThreadParam* data) {
 	data->listenfd = -1;
 
 	char responseStr[RESPONSE_LENGTH] = {0};
-	if (ParseIPPort(&(data->clientAddr), data->request.arg)) {
+	if (ParseIPPort(data)) {
 		printf("port mode on, connfd = %d\n", data->connfd);// s
+		printf("client addr: IP = %s, port = %d\n", data->clientAddr.IP, data->clientAddr.port);
 		data->dataConnectionMode = PORT_MODE;
+		memset(&(data->dataAddr), 0, sizeof(data->dataAddr));
+		data->dataAddr.sin_family = AF_INET;
+		data->dataAddr.sin_port = htons(data->clientAddr.port);
+		inet_pton(AF_INET, data->clientAddr.IP, &((data->dataAddr).sin_addr.s_addr));
 		strcpy(responseStr, "200 port success.\r\n");
 	}
 	else {
@@ -408,14 +413,20 @@ int LIST_Handler(struct ThreadParam* data) {
 		data->datafd = accept(data->listenfd, NULL, NULL);
 	}
 	strcpy(responseStr, "150 LIST start.\r\n");
-	WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	if (!WriteResponse(data->connfd, strlen(responseStr), responseStr))
+	{
+		return 0;
+	}
 	printf("ready write\n");
 	fflush(stdout);
 	if (!WriteFile(data, lsTmpFile)) {
 		printf("error ls\n");
+		return 0;
 	}
+	printf("write file finished\n");
 	if(remove(lsTmpFile) < 0) {
 		printf("error remove\n");
+		return 0;
 	}
 	return 1;
 };
