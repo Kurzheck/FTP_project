@@ -157,7 +157,8 @@ int RETR_Handler(struct ThreadParam* data) {
 	char responseStr[RESPONSE_LENGTH] = {0};
 	if (data->dataConnectionMode == NO_CONNECTION) {
 		printf("no connection, connfd = %d\n", data->connfd);
-		goto RETR_connection_failed;
+		strcpy(responseStr, "425 no data connection.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 
 	char filePath[PATH_LENGTH] = {0};
@@ -175,59 +176,63 @@ int RETR_Handler(struct ThreadParam* data) {
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 
-	if (data->dataConnectionMode == PORT_MODE) { // connect()
-		struct sockaddr_in addr;
-		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-			printf("Error socket(): %s(%d)\n", strerror(errno), errno);
-			goto RETR_connection_failed;
-		}
+	//if (data->dataConnectionMode == PORT_MODE) { // connect()
+	//	struct sockaddr_in addr;
+	//	if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
+	//		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
+	//		goto RETR_connection_failed;
+	//	}
 
-		memset(&addr, 0, sizeof(addr));
-		addr.sin_family = AF_INET;
-		addr.sin_port = htons(data->clientAddr.port);
-		addr.sin_addr.s_addr = htonl(INADDR_ANY);
-		if (inet_pton(AF_INET, data->clientAddr.IP, &addr.sin_addr) == -1) {			
-			printf("Error inet_pton(): %s(%d)\n", strerror(errno), errno);
-			goto RETR_connection_failed;
-		}
-		if (connect(data->datafd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
-			printf("Error connect(): %s(%d)\n", strerror(errno), errno);
+		//memset(&addr, 0, sizeof(addr));
+		//addr.sin_family = AF_INET;
+		//addr.sin_port = htons(data->clientAddr.port);
+		//addr.sin_addr.s_addr = htonl(INADDR_ANY);
+		//if (inet_pton(AF_INET, data->clientAddr.IP, &addr.sin_addr) == -1) {			
+		//	printf("Error inet_pton(): %s(%d)\n", strerror(errno), errno);
+		//	goto RETR_connection_failed;
+		//}
+		//if (connect(data->datafd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+		//	printf("Error connect(): %s(%d)\n", strerror(errno), errno);
 			// CloseConnection(data->datafd);
 			// data->datafd = -1;
-			goto RETR_connection_failed;
-		}
-	}
+		//	goto RETR_connection_failed;
+		//}
+	//}
 
-	else if (data->dataConnectionMode == PASV_MODE) { // accept()
-		if ((data->datafd = accept(data->listenfd, NULL, NULL)) == -1) {
-			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
-			// CloseConnection(data->listenfd);
-			// data->listenfd = -1;
-			goto RETR_connection_failed;
-		}
-	}
+	//else if (data->dataConnectionMode == PASV_MODE) { // accept()
+	//	if ((data->datafd = accept(data->listenfd, NULL, NULL)) == -1) {
+	//		printf("Error accept(): %s(%d)\n", strerror(errno), errno);
+	//		// CloseConnection(data->listenfd);
+	//		// data->listenfd = -1;
+	//		goto RETR_connection_failed;
+	//	}
+	//}
 	// data connection established
 	// char responseStr[RESPONSE_LENGTH] = "150 RETR start.\r\n";
+
 	strcpy(responseStr, "150 RETR start.\r\n");
 	if (!WriteResponse(data->connfd, strlen(responseStr), responseStr)) {
 		return 0;
 	}
-	if (WriteFile(data, filePath)) { // file transfer succeeded
-		strcpy(responseStr, "226 transmission finished.\r\n");
-	}
-	else {
-		strcpy(responseStr, "451 transmission failed.\r\n");
-	}
-	CloseConnection(data->listenfd);
-	CloseConnection(data->datafd);
-	data->listenfd = -1;
-	data->datafd = -1;
-	data->dataConnectionMode = NO_CONNECTION;
-	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
-RETR_connection_failed:
+	//if (WriteFile(data, filePath)) { // file transfer succeeded
+	//	strcpy(responseStr, "226 transmission finished.\r\n");
+	//}
+	//else {
+	//	strcpy(responseStr, "451 transmission failed.\r\n");
+	//}
+	return WriteFile(data, filePath);
+	//return 1;
+	//CloseConnection(data->listenfd);
+	//CloseConnection(data->datafd);
+	// data->listenfd = -1;
+	// data->datafd = -1;
+	//data->dataConnectionMode = NO_CONNECTION;
+	// return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+
+//RETR_connection_failed:
 	// char responseStr[RESPONSE_LENGTH] = "425 no data connection.\r\n";
-	strcpy(responseStr, "425 no data connection.\r\n");
-	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+//	strcpy(responseStr, "425 no data connection.\r\n");
+//	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 // read()

@@ -297,19 +297,30 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	if (fd < 0)
 	{
 		printf("file open error\n");
-		return 0;
+		goto WriteFile_failed;
 	}
 
-	if (data->dataConnectionMode == PORT_MODE)
+	if (data->dataConnectionMode == PASV_MODE)
+	{
+		if ((data->datafd = accept(data->listenfd, NULL, NULL)) == -1) {
+			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
+			goto WriteFile_failed;
+		}
+	}
+
+	else if (data->dataConnectionMode == PORT_MODE)
 	{
 		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
 		{
-			return 0;
+			printf("Error socket(): %s(%d)\n", strerror(errno), errno);
+			goto WriteFile_failed;
 		}
 		if (connect(data->datafd, (struct sockaddr *)&(data->dataAddr), sizeof(data->dataAddr)) == -1)
 		{
+			printf("Error connect(): %s(%d)\n", strerror(errno), errno);
 			close(data->datafd);
-			return 0;
+			data->datafd = -1;
+			goto WriteFile_failed;
 		}
 	}
 
@@ -320,18 +331,22 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	while (1)
 	{
 		readLen = read(fd, dataBuffer, BUFFER_SIZE);
-		// printf("readLen = %d\n", readLen);
 		if (readLen == 0)
 		{
 			break;
 		}
-		// printf("%s\n", dataBuffer);
 		write(data->datafd, dataBuffer, readLen);
 	}
 	data->readPos = 0;
 	// TODO close xxx
 	close(fd);
 	close(data->datafd);
+	data->datafd = -1;
+	if (data->dataConnectionMode == PASV_MODE)
+	{
+		close(data->listenfd);
+		data->listenfd = -1;
+	}
 	data->dataConnectionMode = NO_CONNECTION;
 	strcpy(responseStr, "226 transmission finished.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
@@ -352,6 +367,9 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	free(file);
 	return 1;
 	*/
+WriteFile_failed:
+	strcpy(responseStr, "451 transmission failed.\r\n");
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
@@ -491,11 +509,5 @@ int ListDir(const char *file, const char *dir)
 	fclose(ls_output);
 	return 1;
 }
-
-/*
-int RemoveDir(struct ThreadParam* data) {
-	// TODO
-};
-*/
 
 #endif
