@@ -363,7 +363,7 @@ int LIST_Handler(struct ThreadParam* data) {
 	// TODO add login authorization
 	char responseStr[RESPONSE_LENGTH] = {0};
 	char lsDir[PATH_LENGTH] = {0};
-	// no arguments
+
 	if (!AbsPath(lsDir, rootPath, data->currDir, data->request.arg))
 	{
 		strcpy(responseStr, "530 invalid path.\r\n");
@@ -426,7 +426,26 @@ int LIST_Handler(struct ThreadParam* data) {
 
 int RMD_Handler(struct ThreadParam* data) {
 	char responseStr[RESPONSE_LENGTH] = {0};
-	if (RemoveDir(data)) {
+	char rmDir[PATH_LENGTH] = {0};
+
+	if (!AbsPath(rmDir, rootPath, data->currDir, data->request.arg))
+	{
+		strcpy(responseStr, "530 invalid path.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	printf("rm dir is %s\n", rmDir);
+
+	struct stat s = {0};
+	stat(rmDir, &s);
+	if (!(s.st_mode & S_IFDIR))
+	{
+		strcpy(responseStr, "530 invalid path.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+
+	// TODO what if rm cwd?
+
+	if (!rmdir(rmDir)) {
 		// char responseStr[RESPONSE_LENGTH] = "250 RMD succeeded.\r\n";
 		strcpy(responseStr, "250 RMD succeeded.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);

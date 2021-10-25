@@ -492,8 +492,10 @@ int ListDir(const char *file, const char *dir)
 	return 1;
 }
 
+/*
 int RemoveDir(struct ThreadParam* data) {
 	// TODO
 };
+*/
 
 #endif
