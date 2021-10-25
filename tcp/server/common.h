@@ -137,7 +137,7 @@ void HandleCommand(struct ThreadParam* data) {
 
 	while(1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		printf("type = %d.\n", data->request.type);
+		// printf("type = %d.\n", data->request.type);
 		if (!SetRequest(data)) {
 			INVALID_Handler(data);
 			continue;
@@ -188,6 +188,9 @@ void HandleCommand(struct ThreadParam* data) {
 				break;
 			case RNTO:
 				RNTO_Handler(data);
+				break;
+			case REST:
+				REST_Handler(data);
 				break;
 			default:
 				INVALID_Handler(data);

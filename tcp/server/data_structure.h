@@ -18,7 +18,8 @@ enum RequestType {
 	LIST,
 	RMD,
 	RNFR,
-	RNTO
+	RNTO,
+	REST
 };
 
 enum ClientState {

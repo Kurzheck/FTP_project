@@ -132,6 +132,8 @@ int SetRequest(struct ThreadParam* data) {
 				data->request.type = RNTO;
 			else if (strcmp(sentence, "RETR") == 0)
 				data->request.type = RETR;
+			else if (strcmp(sentence, "REST") == 0)
+				data->request.type = REST;
 			else
 				return 0;
 			break;
@@ -186,7 +188,7 @@ int ReadRequest(int fd, int len, char* sentence) {
 
 int WriteResponse(int fd, int len, const char* sentence) {
 	int p = 0;
-	printf("enter writeresponse loop\n");
+	//printf("enter writeresponse loop\n");
 	fflush(stdout);
 	while (p < len) {
 		int n = write(fd, sentence + p, len - p);
@@ -198,8 +200,8 @@ int WriteResponse(int fd, int len, const char* sentence) {
 			p += n;
 		}			
 	}
-	printf("loop ends\n");
-	fflush(stdout);
+	//printf("loop ends\n");
+	//fflush(stdout);
 	return 1;
 };
 
@@ -267,7 +269,37 @@ int ParseIPPort(struct ThreadParam* data) {
 	return 1;
 };
 
+int BuildConnection(struct ThreadParam* data)
+{
+	if (data->dataConnectionMode == PASV_MODE)
+	{
+		if ((data->datafd = accept(data->listenfd, NULL, NULL)) == -1) {
+			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
+			return 0;
+		}
+	}
+
+	else if (data->dataConnectionMode == PORT_MODE)
+	{
+		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
+		{
+			printf("Error socket(): %s(%d)\n", strerror(errno), errno);
+			return 0;
+		}
+		if (connect(data->datafd, (struct sockaddr *)&(data->dataAddr), sizeof(data->dataAddr)) == -1)
+		{
+			printf("Error connect(): %s(%d)\n", strerror(errno), errno);
+			close(data->datafd);
+			data->datafd = -1;
+			return 0;
+		}
+	}
+	return 1;
+};
+
+// for STOR
 int ReadFile(struct ThreadParam* data, const char* filePath) {
+	/*
 	FILE* file = fopen(filePath, "w");
 	if (!file) {
 		return 0;
@@ -288,46 +320,80 @@ int ReadFile(struct ThreadParam* data, const char* filePath) {
 	}
 	free(file);
 	return 1;
+	*/
+	printf("enter ReadFile\n");
+	char responseStr[RESPONSE_LENGTH] = {0};
+
+	if (!BuildConnection(data))
+	{
+		goto ReadFile_failed;
+	}
+
+	int fd;
+	if (data->readPos)
+	{ // existed file
+		fd = open(filePath, O_WRONLY | O_APPEND, S_IRWXU | S_IRWXG | S_IRWXO);
+	}
+	else
+	{ // new file
+		fd = open(filePath, O_WRONLY | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
+	}
+	if (fd < 0)
+	{
+		printf("file open error\n");
+		goto ReadFile_failed;
+	}
+	lseek(fd, data->readPos, SEEK_SET);
+	char dataBuffer[BUFFER_SIZE] = {0};
+	int readLen;
+
+	while (1)
+	{
+		readLen = read(data->datafd, dataBuffer, BUFFER_SIZE);
+		if (readLen == 0)
+		{
+			break;
+		}
+		write(fd, dataBuffer, readLen);
+	}
+	data->readPos = 0;
+	close(fd);
+	close(data->datafd);
+	data->datafd = -1;
+	if (data->dataConnectionMode == PASV_MODE)
+	{
+		close(data->listenfd);
+		data->listenfd = -1;
+	}
+	data->dataConnectionMode = NO_CONNECTION;
+	strcpy(responseStr, "226 transmission finished.\r\n");
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+
+ReadFile_failed:
+	strcpy(responseStr, "451 transmission failed.\r\n");
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
+// for RETR
 int WriteFile(struct ThreadParam* data, const char* filePath) {
 	printf("enter WriteFile\n");
 	char responseStr[RESPONSE_LENGTH] = {0};
+
+	if (!BuildConnection(data))
+	{
+		goto WriteFile_failed;
+	}
+
 	int fd = open(filePath, O_RDONLY);
 	if (fd < 0)
 	{
 		printf("file open error\n");
 		goto WriteFile_failed;
 	}
-
-	if (data->dataConnectionMode == PASV_MODE)
-	{
-		if ((data->datafd = accept(data->listenfd, NULL, NULL)) == -1) {
-			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
-			goto WriteFile_failed;
-		}
-	}
-
-	else if (data->dataConnectionMode == PORT_MODE)
-	{
-		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
-		{
-			printf("Error socket(): %s(%d)\n", strerror(errno), errno);
-			goto WriteFile_failed;
-		}
-		if (connect(data->datafd, (struct sockaddr *)&(data->dataAddr), sizeof(data->dataAddr)) == -1)
-		{
-			printf("Error connect(): %s(%d)\n", strerror(errno), errno);
-			close(data->datafd);
-			data->datafd = -1;
-			goto WriteFile_failed;
-		}
-	}
-
 	lseek(fd, data->readPos, SEEK_SET);
 	char dataBuffer[BUFFER_SIZE] = {0};
 	int readLen;
-	printf("datafd=%d\n", data->datafd);
+	// printf("datafd=%d\n", data->datafd);
 	while (1)
 	{
 		readLen = read(fd, dataBuffer, BUFFER_SIZE);
@@ -338,7 +404,6 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 		write(data->datafd, dataBuffer, readLen);
 	}
 	data->readPos = 0;
-	// TODO close xxx
 	close(fd);
 	close(data->datafd);
 	data->datafd = -1;
