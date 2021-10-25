@@ -109,26 +109,20 @@ int PASV_Handler(struct ThreadParam* data) {
 	data->datafd = -1;
 	data->listenfd = -1;
 
+
+	char responseStr[RESPONSE_LENGTH] = {0};
 	data->dataConnectionMode = PASV_MODE;
 	data->dataPort = RandomPort();
 
-	struct sockaddr_in addr;
-	if ((data->listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
-		goto PASV_failed;
-	}
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(data->dataPort);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	data->listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-	char responseStr[RESPONSE_LENGTH] = {0};
-	if (inet_pton(AF_INET, serverIP, &addr.sin_addr) == -1) {
-		printf("Error inet_pton(): %s(%d)\n", strerror(errno), errno);
-		goto PASV_failed;
-	}
+	memset(&(data->dataAddr), 0, sizeof(data->dataAddr));
+	data->dataAddr.sin_family = AF_INET;
+	data->dataAddr.sin_port = htons(data->dataPort);
+	data->dataAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	inet_pton(AF_INET, serverIP, &((data->dataAddr).sin_addr.s_addr));
 
-	if (bind(data->listenfd,(struct sockaddr*)&addr, sizeof(addr)) == -1) {
+	if (bind(data->listenfd,(struct sockaddr*)&(data->dataAddr), sizeof(data->dataAddr)) == -1) {
 		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
 		goto PASV_failed;
 	}
@@ -140,14 +134,13 @@ int PASV_Handler(struct ThreadParam* data) {
 
 	printf("passive mode on, connfd = %d\n", data->connfd);
 	char addrStr[30];
-	strcpy(addrStr, AddrToString((int)(addr.sin_port)));
+	strcpy(addrStr, AddrToString((int)(data->dataAddr.sin_port)));
 	// char responseStr[RESPONSE_LENGTH];
 	sprintf(responseStr, "227 passive mode (%s).\r\n", addrStr);
 
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 
 PASV_failed:
-	// char responseStr[RESPONSE_LENGTH] = "425 PASV command failed.\r\n";
 	strcpy(responseStr, "425 PASV command failed.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
