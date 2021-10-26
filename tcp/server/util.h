@@ -543,6 +543,7 @@ int ChangeDir(struct ThreadParam* data) {
 
 int ListDir(const char *file, const char *dir)
 {
+	// TODO change var name
 	printf("enter ListDir\n");
 	char command[PATH_LENGTH];
 	sprintf(command, "ls %s -lh", dir);
