@@ -369,6 +369,7 @@ int ReadFile(struct ThreadParam* data, const char* filePath) {
 	}
 	data->dataConnectionMode = NO_CONNECTION;
 	strcpy(responseStr, "226 transmission finished.\r\n");
+	printf("transmission finished.\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 
 ReadFile_failed:
@@ -404,7 +405,7 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 		{
 			break;
 		}
-		// printf("write: %s\n", dataBuffer);
+		printf("write: %s\n", dataBuffer);
 		write(data->datafd, dataBuffer, readLen);
 	}
 	data->readPos = 0;
@@ -418,6 +419,7 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	}
 	data->dataConnectionMode = NO_CONNECTION;
 	strcpy(responseStr, "226 transmission finished.\r\n");
+	printf("transmission finished.\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 
 WriteFile_failed:

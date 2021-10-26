@@ -362,21 +362,28 @@ int RMD_Handler(struct ThreadParam* data) {
 		strcpy(responseStr, "250 RMD succeeded.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
-	// char responseStr[RESPONSE_LENGTH] = "550 RMD failed.\r\n";
-	strcpy(responseStr, "550 RMD failed.\r\n");
-	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	else
+	{
+		strcpy(responseStr, "550 RMD failed.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
 };
 
 int RNFR_Handler(struct ThreadParam* data) {
-
+	return 1;
 };
 
 int RNTO_Handler(struct ThreadParam* data) {
-
+	return 1;
 };
 
 int REST_Handler(struct ThreadParam* data)
 {
-	// TODO
+	char responseStr[RESPONSE_LENGTH] = {0};
+	int pos;
+	sscanf(data->request.arg, "%d", &pos);
+	data->readPos = pos;
+	sprintf(responseStr, "200 rest success, set to %d.\r\n", pos);
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 }
 #endif

@@ -29,14 +29,17 @@ int ArgHandler(int argc, char **argv) {
 			}
 		}
 		else if (strcmp(argv[1], "-root") == 0) {
-			strcpy(rootPath, argv[2]);
-			return 1;
+			if (argv[2])
+			{
+				strcpy(rootPath, argv[2]);
+				return 1;
+			}
 		}
 	}
 	else if (argc == 5) {
 		if (strcmp(argv[1], "-port") == 0 && strcmp(argv[3], "-root") == 0) {
 			int port = atoi(argv[2]);
-			if (port >= 0 && port < 65535 && !argv[4]) {
+			if (port >= 0 && port < 65535 && argv[4]) {
 				listenPort = port;
 				strcpy(rootPath, argv[4]);
 				return 1;
@@ -44,7 +47,7 @@ int ArgHandler(int argc, char **argv) {
 		}
 		else if (strcmp(argv[1], "-root") == 0 && strcmp(argv[3], "-port") == 0) {
 			int port = atoi(argv[4]);
-			if (port >= 0 && port < 65535 && !argv[2]) {
+			if (port >= 0 && port < 65535 && argv[2]) {
 				listenPort = port;
 				strcpy(rootPath, argv[2]);
 				return 1;

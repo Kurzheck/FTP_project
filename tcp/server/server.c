@@ -13,7 +13,12 @@
 #include "common.h"
 
 int main(int argc, char **argv) {
-	ArgHandler(argc, argv);
+	if (!ArgHandler(argc, argv))
+	{
+		printf("arg error\n");
+		return 1;
+	}
+	//printf("port = %d, root = %s\n", listenPort, rootPath);
 	//SocketInit();
 	int connfd;
 	struct sockaddr_in addr;
