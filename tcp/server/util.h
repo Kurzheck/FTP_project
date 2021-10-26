@@ -543,27 +543,25 @@ int ChangeDir(struct ThreadParam* data) {
 
 int ListDir(const char *file, const char *dir)
 {
-	// TODO change var name
 	printf("enter ListDir\n");
-	char command[PATH_LENGTH];
-	sprintf(command, "ls %s -lh", dir);
-	FILE *ls_output = popen(command, "r");
+	char cmd[PATH_LENGTH];
+	sprintf(cmd, "ls -lh %s", dir);
+	FILE *line = popen(cmd, "r");
 	FILE *f = fopen(file, "w");
 
-	char buf[PATH_LENGTH];
+	char lsBuffer[PATH_LENGTH];
 	while (1)
 	{
-		int num = fread(buf, 1, PATH_LENGTH, ls_output);
-		if (!num)
+		int readLen = fread(lsBuffer, 1, PATH_LENGTH, line);
+		if (!readLen)
 		{
 			break;
 		}
-		fwrite(buf, 1, num, f);
-		// printf("%s\n", buf);
+		fwrite(lsBuffer, 1, readLen, f);
 	}
 
 	fclose(f);
-	fclose(ls_output);
+	fclose(line);
 	return 1;
 }
 
