@@ -22,7 +22,7 @@ int SetRequest(struct ThreadParam* data) {
 	// char sentence[SENTENCE_LENGTH] = strcmp(data->sentence);
 	char sentence[SENTENCE_LENGTH] = {0};
 	strcpy(sentence, data->sentence);
-	printf("sentence: %s\n", sentence);
+	printf("============= sentence: %s =============\n", sentence);
 	fflush(stdout);
 	int cmdLength = -1;
 	char* argPtr;
@@ -273,6 +273,7 @@ int BuildConnection(struct ThreadParam* data)
 {
 	if (data->dataConnectionMode == PASV_MODE)
 	{
+		printf("is passive mode\n");
 		if ((data->datafd = accept(data->listenfd, NULL, NULL)) == -1) {
 			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
 			return 0;
@@ -281,6 +282,7 @@ int BuildConnection(struct ThreadParam* data)
 
 	else if (data->dataConnectionMode == PORT_MODE)
 	{
+		printf("is port mode\n");
 		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
 		{
 			printf("Error socket(): %s(%d)\n", strerror(errno), errno);
@@ -383,13 +385,14 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	{
 		goto WriteFile_failed;
 	}
-
+	
 	int fd = open(filePath, O_RDONLY);
 	if (fd < 0)
 	{
 		printf("file open error\n");
 		goto WriteFile_failed;
 	}
+
 	lseek(fd, data->readPos, SEEK_SET);
 	char dataBuffer[BUFFER_SIZE] = {0};
 	int readLen;
@@ -401,6 +404,7 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 		{
 			break;
 		}
+		// printf("write: %s\n", dataBuffer);
 		write(data->datafd, dataBuffer, readLen);
 	}
 	data->readPos = 0;
@@ -415,24 +419,9 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	data->dataConnectionMode = NO_CONNECTION;
 	strcpy(responseStr, "226 transmission finished.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
-	/*
-	FILE* file = fopen(filePath, "r");
-	if (!file) {
-		return 0;
-	}
-	char dataBuffer[BUFFER_SIZE] = {0};
-	while (!feof(file)) {
-		int readLen = fread(dataBuffer, sizeof(char), BUFFER_SIZE, file);
-		int total = 0;
-		int writeLen;
-		while ((writeLen = write(data->datafd, dataBuffer + total, readLen - total)) > 0) {
-			total += writeLen;
-		}
-	}
-	free(file);
-	return 1;
-	*/
+
 WriteFile_failed:
+	printf("write file failed\n");
 	strcpy(responseStr, "451 transmission failed.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };

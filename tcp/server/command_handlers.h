@@ -114,30 +114,44 @@ int PASV_Handler(struct ThreadParam* data) {
 	data->dataConnectionMode = PASV_MODE;
 	data->dataPort = RandomPort();
 
-	data->listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if ((data->listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+	{
+		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
+		goto PASV_failed;
+	}
 
 	memset(&(data->dataAddr), 0, sizeof(data->dataAddr));
 	data->dataAddr.sin_family = AF_INET;
-	data->dataAddr.sin_port = htons(data->dataPort);
+	//data->dataAddr.sin_port = htons(data->dataPort);
+	data->dataAddr.sin_port = htons(RandomPort());
+	//data->dataAddr.sin_port = htons(0);
 	data->dataAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	inet_pton(AF_INET, serverIP, &((data->dataAddr).sin_addr.s_addr));
 
-	if (bind(data->listenfd,(struct sockaddr*)&(data->dataAddr), sizeof(data->dataAddr)) == -1) {
+	if (bind(data->listenfd, (struct sockaddr*)&(data->dataAddr), sizeof(data->dataAddr)) < 0) {
 		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
 		goto PASV_failed;
 	}
 
-	if (listen(data->listenfd, 10) == -1) {
+	if (listen(data->listenfd, 1) < 0) {
 		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
 		goto PASV_failed;
 	}
 
 	printf("passive mode on, connfd = %d\n", data->connfd);
+
+	socklen_t socklen = sizeof(struct sockaddr);
+	if (getsockname(data->listenfd, (struct sockaddr *)&(data->dataAddr), &socklen) < 0) {
+		printf("Error getsockname(): %s(%d)\n", strerror(errno), errno);
+		goto PASV_failed;
+    }
+	int port = ntohs(data->dataAddr.sin_port);
+
 	char addrStr[30];
-	strcpy(addrStr, AddrToString((int)(data->dataAddr.sin_port)));
+	strcpy(addrStr, AddrToString(port));
 	// char responseStr[RESPONSE_LENGTH];
 	sprintf(responseStr, "227 passive mode (%s).\r\n", addrStr);
-
+	printf("addr: %s\n", addrStr);
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 
 PASV_failed:
@@ -217,7 +231,7 @@ int TYPE_Handler(struct ThreadParam* data) {
 	char responseStr[RESPONSE_LENGTH] = {0};
 	if (strcmp(data->request.arg, "I") == 0) {
 		// char responseStr[RESPONSE_LENGTH] = "200 type set to I.\r\n";
-		strcpy(responseStr, "200 type set to I.\r\n");
+		strcpy(responseStr, "200 Type set to I.\r\n");
 		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 	}
 	// char responseStr[RESPONSE_LENGTH] = "425 invalid type.\r\n";
@@ -297,10 +311,12 @@ int LIST_Handler(struct ThreadParam* data) {
 		}
 	}
 	ListDir(lsTmpFile, lsDir);
+	/*
 	if (data->dataConnectionMode == PASV_MODE)
 	{
 		data->datafd = accept(data->listenfd, NULL, NULL);
 	}
+	*/
 	strcpy(responseStr, "150 LIST start.\r\n");
 	if (!WriteResponse(data->connfd, strlen(responseStr), responseStr))
 	{
