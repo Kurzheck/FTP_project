@@ -1,6 +1,8 @@
 import os
+import socket
 from pathlib import Path
 import sys
+import command
 
 from PySide2.QtWidgets import QProgressBar, QPushButton, QRadioButton, QSpinBox, QTableWidget, QTextEdit, QWidget, QLineEdit
 from PySide2.QtCore import QFile
@@ -10,13 +12,13 @@ from PySide2.QtUiTools import QUiLoader
 class ClientWindow(QWidget):
     def __init__(self):
         super(ClientWindow, self).__init__()
-        self.load_ui()
+        self.__load_ui()
         self.setFixedSize(700, 800)
-        self.init_widget()
-        self.init_status()
-        self.init_connect()
+        self.__init_widget()
+        self.__init_status()
+        self.__init_connect()
 
-    def load_ui(self):
+    def __load_ui(self):
         loader = QUiLoader()
         path = os.fspath(Path(__file__).resolve().parent / "form.ui")
         ui_file = QFile(path)
@@ -24,9 +26,10 @@ class ClientWindow(QWidget):
         loader.load(ui_file, self)
         ui_file.close()
 
-    def init_widget(self):
+    def __init_widget(self):
         self.lineEdit_IP = self.findChild(QLineEdit, "lineEdit_IP")
-        self.spinBox_port = self.findChild(QSpinBox, "spinBox_port")
+        self.lineEdit_port = self.findChild(QLineEdit, "lineEdit_port")
+        self.lineEdit_port.setMaxLength(10)
         self.lineEdit_username = self.findChild(QLineEdit, "lineEdit_username")
         self.lineEdit_password = self.findChild(QLineEdit, "lineEdit_password")
         self.radioButton_PASV = self.findChild(QRadioButton, "radioButton_PASV")
@@ -44,11 +47,20 @@ class ClientWindow(QWidget):
         self.progressBar = self.findChild(QProgressBar, "progressBar")
         self.textEdit_log = self.findChild(QTextEdit, "textEdit_log")
 
-    def init_status(self):
+    def __init_status(self):
         self.lineEdit_username.setText("anonymous")
 
-    def init_connect(self):
-        self.pushButton_login.clicked.connect(self.login());
+    def __init_connect(self):
+        self.pushButton_login.clicked.connect(self.Login());
+        self.pushButton_logout.clicked.connect(self.Logout());
 
-    def login(self):
+    def Login(self):
+        IP = self.lineEdit_IP.text()
+        port = self.lineEdit_port.text()
+        username = self.lineEdit_username.text()
+        password = self.lineEdit_password.text()
+        self.connfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def Logout(self):
         pass
+
