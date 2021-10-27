@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>608</width>
-    <height>719</height>
+    <width>700</width>
+    <height>800</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>ClientWindow</string>
@@ -18,74 +24,86 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>591</width>
-     <height>701</height>
+     <width>671</width>
+     <height>781</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,4,0,0,4">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetDefaultConstraint</enum>
+    </property>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
-         <widget class="QLabel" name="label_IPport">
-          <property name="text">
-           <string>IP:port</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_username">
-          <property name="text">
-           <string>username</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_password">
-          <property name="text">
-           <string>password</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_mode">
-          <property name="text">
-           <string>mode</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QLineEdit" name="lineEdit_IP"/>
+           <widget class="QLineEdit" name="lineEdit_IP">
+            <property name="placeholderText">
+             <string>IP Address</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox_port"/>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit_port">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>131</width>
+              <height>19</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="maxLength">
+             <number>32774</number>
+            </property>
+            <property name="placeholderText">
+             <string>port</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_username"/>
+         <widget class="QLineEdit" name="lineEdit_username">
+          <property name="placeholderText">
+           <string>Username</string>
+          </property>
+         </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_password"/>
+         <widget class="QLineEdit" name="lineEdit_password">
+          <property name="placeholderText">
+           <string>Passport</string>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
-           <widget class="QRadioButton" name="radioButtonPASV">
+           <widget class="QRadioButton" name="radioButton_PASV">
             <property name="text">
              <string>PASV</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButtonPORT">
+           <widget class="QRadioButton" name="radioButton_PORT">
             <property name="text">
              <string>PORT</string>
             </property>
@@ -111,14 +129,17 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QPushButton" name="pushButton_Login">
+         <widget class="QPushButton" name="pushButton_login">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="text">
            <string>Login</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_Logout">
+         <widget class="QPushButton" name="pushButton_logout">
           <property name="text">
            <string>Logout</string>
           </property>
@@ -167,7 +188,7 @@
        <widget class="QLineEdit" name="lineEdit_cwd"/>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_Go">
+       <widget class="QPushButton" name="pushButton_go">
         <property name="text">
          <string>Go</string>
         </property>
@@ -183,14 +204,14 @@
       <item>
        <widget class="QPushButton" name="pushButton_mkdir">
         <property name="text">
-         <string>Create Dir</string>
+         <string>Create</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_rm">
         <property name="text">
-         <string>Remove Dir</string>
+         <string>Remove</string>
         </property>
        </widget>
       </item>
