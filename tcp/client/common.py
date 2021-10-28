@@ -10,10 +10,13 @@ from PySide2.QtUiTools import QUiLoader
 
 
 class ClientWindow(QWidget):
+
+    PASV_MODE = 0
+    PORT_MODE = 1
+
     def __init__(self):
         super(ClientWindow, self).__init__()
         self.__load_ui()
-        self.setFixedSize(700, 800)
         self.__init_widget()
         self.__init_status()
         self.__set_data()
@@ -26,6 +29,7 @@ class ClientWindow(QWidget):
         ui_file.open(QFile.ReadOnly)
         loader.load(ui_file, self)
         ui_file.close()
+        self.setFixedSize(700, 800)
 
     def __init_widget(self):
         self.lineEdit_IP = self.findChild(QLineEdit, "lineEdit_IP")
@@ -46,6 +50,7 @@ class ClientWindow(QWidget):
         self.pushButton_mkdir = self.findChild(QPushButton, "pushButton_mkdir")
         self.pushButton_upload = self.findChild(QPushButton, "pushButton_upload")
         self.pushButton_download = self.findChild(QPushButton, "pushButton_download")
+        self.pushButton_rename = self.findChild(QPushButton, "pushButton_rename")
         self.progressBar = self.findChild(QProgressBar, "progressBar")
         self.textEdit_log = self.findChild(QTextEdit, "textEdit_log")
 
@@ -55,14 +60,44 @@ class ClientWindow(QWidget):
         self.lineEdit_username.setText("anonymous")
         self.lineEdit_password.setText("password")
         self.label_status_content.setText("not connected")
+        self.radioButton_PASV.setChecked(True)
 
     def __set_data(self):
         self.logs = []
-        self.con_status = False
+        self.user_status = False
+        self.OnStatusChange()
+        self.mode = self.PASV_MODE
+        self.has_data_con = False
+        self.cwd = ""
 
     def __init_connect(self):
         self.pushButton_login.clicked.connect(self.Login)
         self.pushButton_logout.clicked.connect(self.Logout)
+        self.radioButton_PASV.toggled.connect(self.SelectPASV)
+        self.radioButton_PORT.toggled.connect(self.SelectPORT)
+
+    def SelectPASV(self):
+        self.mode = self.PASV_MODE
+        self.radioButton_PORT.setChecked(False)
+
+    def SelectPORT(self):
+        self.mode = self.PORT_MODE
+        self.radioButton_PASV.setChecked(False)
+
+    def OnStatusChange(self):
+        flag = self.user_status
+        self.pushButton_go.setEnabled(flag)
+        self.pushButton_mkdir.setEnabled(flag)
+        self.pushButton_rm.setEnabled(flag)
+        self.pushButton_upload.setEnabled(flag)
+        self.pushButton_download.setEnabled(flag)
+        self.pushButton_rename.setEnabled(flag)
+        self.pushButton_logout.setEnabled(flag)
+        self.pushButton_login.setEnabled(not flag)
+        self.lineEdit_IP.setEnabled(not flag)
+        self.lineEdit_port.setEnabled(not flag)
+        self.lineEdit_username.setEnabled(not flag)
+        self.lineEdit_password.setEnabled(not flag)
 
     def SendCmd(self, command):
         self.PrintLog(">> " + command)
@@ -70,20 +105,19 @@ class ClientWindow(QWidget):
             self.con_socket.send(command.encode())
         except Exception as e:
             self.PrintLog(e.__str__)
-        
 
-    def RecvMsg(self):
-        msg = b"<< "
+    def RecvRes(self):
+        res = b""
         while True:
             buf = self.con_socket.recv(1)
-            msg += buf
-            #if msg[-2:] == b"\r\n":
-            if msg.endswith(b"\r\n"):
+            res += buf
+            if res.endswith(b"\r\n"):
                 break
-        if isinstance(msg, bytes):
-            msg = msg.decode()
-        self.PrintLog(msg)
-        return msg[3:]
+        if isinstance(res, bytes):
+            res = res.decode()
+        self.PrintLog("<< " + res)
+        code, msg = int(res[:3]), res[4:].replace("\r\n", "")
+        return (code, msg)
 
     def Login(self):
         self.remote_IP = self.lineEdit_IP.text()
@@ -103,10 +137,12 @@ class ClientWindow(QWidget):
         except Exception as e:
             self.PrintLog(e.__str__)
             self.label_status_content.setText("connection error")
-        self.RecvMsg()
+        self.RecvRes()
         self.USER_handler(self.username)
         if self.PASS_handler(self.password):
             self.label_status_content.setText("logged in")
+            self.user_status = True
+            self.OnStatusChange()
             self.SYST_handler()
             self.TYPE_handler("I")
             self.PWD_handler()
@@ -115,8 +151,10 @@ class ClientWindow(QWidget):
             self.label_status_content.setText("login error")
 
     def Logout(self):
-        self.QUIT_handler()
-        self.con_status = False
+        if self.user_status:
+            self.QUIT_handler()
+            self.user_status = False
+            self.OnStatusChange()
         self.label_status_content.setText("not connected")
         self.logs = []
         self.textEdit_log.setPlainText("")
@@ -128,19 +166,19 @@ class ClientWindow(QWidget):
 
     def USER_handler(self, arg):
         self.SendCmd(cmd("USER", arg))
-        return self.RecvMsg().startswith("230")
+        return self.RecvRes()[0] is 230
 
     def PASS_handler(self, arg):
         self.SendCmd(cmd("PASS", arg))
-        return self.RecvMsg().startswith("230")
+        return self.RecvRes()[0] is 230
 
     def SYST_handler(self):
         self.SendCmd(cmd("SYST"))
-        return self.RecvMsg().startswith("215")
+        return self.RecvRes()[0] is 215
 
     def TYPE_handler(self, arg):
         self.SendCmd(cmd("TYPE", arg))
-        return self.RecvMsg().startswith("200")
+        return self.RecvRes()[0] is 200
 
     def PASV_handler(self):
         pass
@@ -152,7 +190,8 @@ class ClientWindow(QWidget):
         pass
 
     def PWD_handler(self):
-        pass
+        self.SendCmd(cmd("PWD"))
+
 
     def CWD_handler(self):
         pass
