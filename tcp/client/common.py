@@ -19,7 +19,7 @@ class ClientWindow(QWidget):
         self.__load_ui()
         self.__init_widget()
         self.__init_status()
-        self.__set_data()
+        self.__init_data()
         self.__init_connect()
 
     def __load_ui(self):
@@ -53,6 +53,7 @@ class ClientWindow(QWidget):
         self.pushButton_rename = self.findChild(QPushButton, "pushButton_rename")
         self.progressBar = self.findChild(QProgressBar, "progressBar")
         self.textEdit_log = self.findChild(QTextEdit, "textEdit_log")
+        self.pushButton_clear_log = self.findChild(QPushButton, "pushButton_clear_log")
 
     def __init_status(self):
         self.lineEdit_IP.setText("166.111.80.66")
@@ -62,7 +63,7 @@ class ClientWindow(QWidget):
         self.label_status_content.setText("not connected")
         self.radioButton_PASV.setChecked(True)
 
-    def __set_data(self):
+    def __init_data(self):
         self.logs = []
         self.user_status = False
         self.OnStatusChange()
@@ -75,6 +76,7 @@ class ClientWindow(QWidget):
         self.pushButton_logout.clicked.connect(self.Logout)
         self.radioButton_PASV.toggled.connect(self.SelectPASV)
         self.radioButton_PORT.toggled.connect(self.SelectPORT)
+        self.pushButton_clear_log.clicked.connect(self.ClearLog)
 
     def SelectPASV(self):
         self.mode = self.PASV_MODE
@@ -86,6 +88,7 @@ class ClientWindow(QWidget):
 
     def OnStatusChange(self):
         flag = self.user_status
+        self.lineEdit_cwd.setEnabled(flag)
         self.pushButton_go.setEnabled(flag)
         self.pushButton_mkdir.setEnabled(flag)
         self.pushButton_rm.setEnabled(flag)
@@ -145,7 +148,8 @@ class ClientWindow(QWidget):
             self.OnStatusChange()
             self.SYST_handler()
             self.TYPE_handler("I")
-            self.PWD_handler()
+            if self.PWD_handler():
+                self.lineEdit_cwd.setText(self.cwd)
             self.LIST_handler()
         else:
             self.label_status_content.setText("login error")
@@ -153,32 +157,38 @@ class ClientWindow(QWidget):
     def Logout(self):
         if self.user_status:
             self.QUIT_handler()
-            self.user_status = False
-            self.OnStatusChange()
+        self.user_status = False
+        self.OnStatusChange()
+        self.has_data_con = False
+        self.cwd = ""
+        self.SelectPASV()
         self.label_status_content.setText("not connected")
-        self.logs = []
-        self.textEdit_log.setPlainText("")
+        self.lineEdit_cwd.setText("")
 
     def PrintLog(self, msg):
         self.logs.append(msg)
         self.textEdit_log.setPlainText("\n".join(self.logs))
         self.textEdit_log.moveCursor(self.textEdit_log.textCursor().End)
 
+    def ClearLog(self):
+        self.logs = []
+        self.textEdit_log.setPlainText("")
+
     def USER_handler(self, arg):
         self.SendCmd(cmd("USER", arg))
-        return self.RecvRes()[0] is 230
+        return self.RecvRes()[0] == 230
 
     def PASS_handler(self, arg):
         self.SendCmd(cmd("PASS", arg))
-        return self.RecvRes()[0] is 230
+        return self.RecvRes()[0] == 230
 
     def SYST_handler(self):
         self.SendCmd(cmd("SYST"))
-        return self.RecvRes()[0] is 215
+        return self.RecvRes()[0] == 215
 
     def TYPE_handler(self, arg):
         self.SendCmd(cmd("TYPE", arg))
-        return self.RecvRes()[0] is 200
+        return self.RecvRes()[0] == 200
 
     def PASV_handler(self):
         pass
@@ -187,12 +197,13 @@ class ClientWindow(QWidget):
         pass
 
     def QUIT_handler(self):
-        pass
+        self.SendCmd(cmd("QUIT"))
+        return self.RecvRes()[0] == 221
 
     def PWD_handler(self):
         self.SendCmd(cmd("PWD"))
         code, msg = self.RecvRes()
-        if code is 257:
+        if code == 257:
             self.cwd = msg.replace("\"", "")
             return True
         return False
