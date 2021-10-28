@@ -4,4 +4,4 @@ from pathlib import Path
 import sys
 
 def cmd(command, arg=""):
-    return command + " " + arg + "\r\n"
+    return str(command) + " " + arg + "\r\n"

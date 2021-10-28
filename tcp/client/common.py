@@ -58,16 +58,32 @@ class ClientWindow(QWidget):
 
     def __set_data(self):
         self.logs = []
+        self.con_status = False
 
     def __init_connect(self):
-        self.pushButton_login.clicked.connect(self.Login);
-        self.pushButton_logout.clicked.connect(lambda: self.Logout());
+        self.pushButton_login.clicked.connect(self.Login)
+        self.pushButton_logout.clicked.connect(self.Logout)
 
     def SendCmd(self, command):
-        self.PrintLog(command)
+        self.PrintLog(">> " + command)
+        try:
+            self.con_socket.send(command.encode())
+        except Exception as e:
+            self.PrintLog(e.__str__)
+        
 
     def RecvMsg(self):
-        pass
+        msg = b"<< "
+        while True:
+            buf = self.con_socket.recv(1)
+            msg += buf
+            #if msg[-2:] == b"\r\n":
+            if msg.endswith(b"\r\n"):
+                break
+        if isinstance(msg, bytes):
+            msg = msg.decode()
+        self.PrintLog(msg)
+        return msg[3:]
 
     def Login(self):
         self.remote_IP = self.lineEdit_IP.text()
@@ -76,8 +92,10 @@ class ClientWindow(QWidget):
         self.password = self.lineEdit_password.text()
         self.con_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        self.PrintLog("Server IP: " + str(self.remote_IP))
+        self.PrintLog("Server port: " + str(self.remote_port))
         self.PrintLog("Username: " + str(self.username))
-        self.PrintLog("Password: " + str(self.password))
+        self.PrintLog("Password: " + str(self.password) + "\n")
         try:
             # TODO connect timeout
             self.con_socket.connect((self.remote_IP, self.remote_port))
@@ -87,34 +105,42 @@ class ClientWindow(QWidget):
             self.label_status_content.setText("connection error")
         self.RecvMsg()
         self.USER_handler(self.username)
-        self.PASS_handler(self.password)
-        self.SYST_handler()
-        self.TYPE_handler("I")
-        self.PWD_handler()
-        self.LIST_handler()
+        if self.PASS_handler(self.password):
+            self.label_status_content.setText("logged in")
+            self.SYST_handler()
+            self.TYPE_handler("I")
+            self.PWD_handler()
+            self.LIST_handler()
+        else:
+            self.label_status_content.setText("login error")
 
     def Logout(self):
-        pass
+        self.QUIT_handler()
+        self.con_status = False
+        self.label_status_content.setText("not connected")
+        self.logs = []
+        self.textEdit_log.setPlainText("")
 
     def PrintLog(self, msg):
         self.logs.append(msg)
         self.textEdit_log.setPlainText("\n".join(self.logs))
+        self.textEdit_log.moveCursor(self.textEdit_log.textCursor().End)
 
     def USER_handler(self, arg):
         self.SendCmd(cmd("USER", arg))
-        self.RecvMsg()
+        return self.RecvMsg().startswith("230")
 
     def PASS_handler(self, arg):
         self.SendCmd(cmd("PASS", arg))
-        self.RecvMsg()
+        return self.RecvMsg().startswith("230")
 
     def SYST_handler(self):
         self.SendCmd(cmd("SYST"))
-        self.RecvMsg()
+        return self.RecvMsg().startswith("215")
 
     def TYPE_handler(self, arg):
         self.SendCmd(cmd("TYPE", arg))
-        self.RecvMsg()
+        return self.RecvMsg().startswith("200")
 
     def PASV_handler(self):
         pass
