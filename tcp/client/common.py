@@ -1,5 +1,6 @@
 import os
 import socket
+import re
 from pathlib import Path
 import sys
 from util import *
@@ -126,6 +127,12 @@ class ClientWindow(QWidget):
         code, msg = int(res[:3]), res[4:].replace("\r\n", "")
         return (code, msg)
 
+    def DataConnect(self):
+        if self.mode == self.PASV_MODE:
+            self.PASV_handler()
+        elif self.mode == self.PORT_MODE:
+            self.PORT_handler()
+
 ############################################   slot   ############################################
 
     def Login(self):
@@ -156,7 +163,7 @@ class ClientWindow(QWidget):
             self.TYPE_handler("I")
             if self.PWD_handler():
                 self.lineEdit_cwd.setText(self.cwd)
-            self.LIST_handler()
+            self.LIST_handler(self.cwd)
         else:
             self.label_status_content.setText("login error")
 
@@ -207,10 +214,12 @@ class ClientWindow(QWidget):
         return self.RecvRes()[0] == 200
 
     def PASV_handler(self):
-        pass
+        self.SendCmd(cmd("PASV"))
+        code, msg = self.RecvRes()
 
     def PORT_handler(self):
-        pass
+        self.SendCmd(cmd("PORT"))
+        self.RecvRes()
 
     def QUIT_handler(self):
         self.SendCmd(cmd("QUIT"))
@@ -235,7 +244,8 @@ class ClientWindow(QWidget):
         pass
 
     def LIST_handler(self, arg=""):
-        pass
+        self.SendCmd(cmd("LIST", arg))
+        return self.RecvRes()[0] == 150
 
     def STOR_handler(self):
         pass
