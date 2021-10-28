@@ -191,7 +191,11 @@ class ClientWindow(QWidget):
 
     def PWD_handler(self):
         self.SendCmd(cmd("PWD"))
-
+        code, msg = self.RecvRes()
+        if code is 257:
+            self.cwd = msg.replace("\"", "")
+            return True
+        return False
 
     def CWD_handler(self):
         pass
