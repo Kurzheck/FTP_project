@@ -77,14 +77,9 @@ class ClientWindow(QWidget):
         self.radioButton_PASV.toggled.connect(self.SelectPASV)
         self.radioButton_PORT.toggled.connect(self.SelectPORT)
         self.pushButton_clear_log.clicked.connect(self.ClearLog)
+        self.pushButton_go.clicked.connect(self.ChangeDir)
 
-    def SelectPASV(self):
-        self.mode = self.PASV_MODE
-        self.radioButton_PORT.setChecked(False)
-
-    def SelectPORT(self):
-        self.mode = self.PORT_MODE
-        self.radioButton_PASV.setChecked(False)
+############################################   util   ############################################
 
     def OnStatusChange(self):
         flag = self.user_status
@@ -102,12 +97,21 @@ class ClientWindow(QWidget):
         self.lineEdit_username.setEnabled(not flag)
         self.lineEdit_password.setEnabled(not flag)
 
+    def PrintLog(self, msg):
+        self.logs.append(msg)
+        self.textEdit_log.setPlainText("\n".join(self.logs))
+        self.textEdit_log.moveCursor(self.textEdit_log.textCursor().End)
+
+    def ClearLog(self):
+        self.logs = []
+        self.textEdit_log.setPlainText("")
+
     def SendCmd(self, command):
         self.PrintLog(">> " + command)
         try:
             self.con_socket.send(command.encode())
         except Exception as e:
-            self.PrintLog(e.__str__)
+            self.PrintLog(e.__str__())
 
     def RecvRes(self):
         res = b""
@@ -121,6 +125,8 @@ class ClientWindow(QWidget):
         self.PrintLog("<< " + res)
         code, msg = int(res[:3]), res[4:].replace("\r\n", "")
         return (code, msg)
+
+############################################   slot   ############################################
 
     def Login(self):
         self.remote_IP = self.lineEdit_IP.text()
@@ -138,7 +144,7 @@ class ClientWindow(QWidget):
             self.con_socket.connect((self.remote_IP, self.remote_port))
             self.label_status_content.setText("connected")
         except Exception as e:
-            self.PrintLog(e.__str__)
+            self.PrintLog(e.__str__())
             self.label_status_content.setText("connection error")
         self.RecvRes()
         self.USER_handler(self.username)
@@ -165,14 +171,24 @@ class ClientWindow(QWidget):
         self.label_status_content.setText("not connected")
         self.lineEdit_cwd.setText("")
 
-    def PrintLog(self, msg):
-        self.logs.append(msg)
-        self.textEdit_log.setPlainText("\n".join(self.logs))
-        self.textEdit_log.moveCursor(self.textEdit_log.textCursor().End)
+    def SelectPASV(self):
+        self.mode = self.PASV_MODE
+        self.radioButton_PORT.setChecked(False)
 
-    def ClearLog(self):
-        self.logs = []
-        self.textEdit_log.setPlainText("")
+    def SelectPORT(self):
+        self.mode = self.PORT_MODE
+        self.radioButton_PASV.setChecked(False)
+
+    def ChangeDir(self):
+        tmp_dir = self.lineEdit_cwd.text()
+        try:
+            assert(self.CWD_handler(tmp_dir))
+            assert(self.PWD_handler())
+        except Exception as e:
+            self.PrintLog(e.__str__())
+        self.lineEdit_cwd.setText(self.cwd)
+
+############################################   handler   ############################################
 
     def USER_handler(self, arg):
         self.SendCmd(cmd("USER", arg))
@@ -208,8 +224,9 @@ class ClientWindow(QWidget):
             return True
         return False
 
-    def CWD_handler(self):
-        pass
+    def CWD_handler(self, arg):
+        self.SendCmd(cmd("CWD", arg))
+        return self.RecvRes()[0] == 250
 
     def MKD_handler(self):
         pass
