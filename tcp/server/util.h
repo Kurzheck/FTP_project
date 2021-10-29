@@ -500,10 +500,13 @@ int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
 	}
 
 	strcpy(dst, tmp);
+	if ((dst[strlen(dst) - 1] == '\r') && (strlen(dst) > 1)) {
+		dst[strlen(dst) - 1] = '\0';
+	}
 	if ((dst[strlen(dst) - 1] == '/') && (strlen(dst) > 1)) {
 		dst[strlen(dst) - 1] = '\0';
 	}
-	printf("abs = %s\n", dst);
+	printf("abs = \"%s\"\n", dst);
 	return 1;
 }
 

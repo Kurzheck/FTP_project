@@ -265,7 +265,7 @@ int CWD_Handler(struct ThreadParam* data) {
 
 int PWD_Handler(struct ThreadParam* data) {
 	char responseStr[RESPONSE_LENGTH] = {0};
-	sprintf(responseStr, "257 \"%s\".\r\n", data->currDir);
+	sprintf(responseStr, "257 \"%s\"\r\n", data->currDir);
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
