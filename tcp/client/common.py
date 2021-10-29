@@ -120,6 +120,9 @@ class ClientWindow(QWidget):
         except Exception as e:
             self.PrintLog(e.__str__())
 
+    def SendData(self):
+        pass
+
     def RecvRes(self):
         res = b""
         while True:
@@ -132,6 +135,9 @@ class ClientWindow(QWidget):
         self.PrintLog("<< " + res)
         code, msg = int(res[:3]), res[4:].replace("\r\n", "")
         return (code, msg)
+
+    def RecvData(self):
+        pass
 
     def DataSetMode(self):
         if self.mode == self.PASV_MODE:
