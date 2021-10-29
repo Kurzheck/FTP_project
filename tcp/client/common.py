@@ -257,12 +257,13 @@ class ClientWindow(QWidget):
         data.replace("\r", "")
         for i, line in enumerate(data.split("\n")):
             seg = line.split()
-            if len(seg) == 0:
+            if len(seg) < 9:
                 continue
             type = seg[0][0]
             seg[0] = seg[0][1:]
             row_data = []
             row_data.append(type)
+            print(seg)
             for k in range(5):
                 row_data.append(seg[k])
             row_data.append(" ".join(seg[5:8]))
