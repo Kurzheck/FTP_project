@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 from util import *
 
-from PySide2.QtWidgets import QLabel, QProgressBar, QPushButton, QRadioButton, QSpinBox, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog, QTableWidgetItem
+from PySide2.QtWidgets import QLabel, QProgressBar, QPushButton, QRadioButton, QSpinBox, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog, QTableWidgetItem, QHeaderView, QAbstractItemView
 from PySide2.QtCore import QFile
 from PySide2.QtUiTools import QUiLoader
 
@@ -30,7 +30,7 @@ class ClientWindow(QWidget):
         ui_file.open(QFile.ReadOnly)
         loader.load(ui_file, self)
         ui_file.close()
-        self.setFixedSize(700, 800)
+        self.setFixedSize(830, 1400)
 
     def __init_widget(self):
         self.lineEdit_IP = self.findChild(QLineEdit, "lineEdit_IP")
@@ -63,6 +63,31 @@ class ClientWindow(QWidget):
         self.label_status_content.setText("not connected")
         self.radioButton_PASV.setChecked(True)
 
+        headers = ["Type", "Permission", "Num", "User", "Group", "Size", "Updated", "Name"]
+        self.tableTypeCol = 0
+        self.tablePermissionCol = 1
+        self.tableNumCol = 2
+        self.tableUserCol = 3
+        self.tableGroupCol = 4
+        self.tableSizeCol = 5
+        self.tableUpdatedCol = 6
+        self.tableNameCol = 7
+        self.tableWidget_ls.setColumnCount(len(headers))
+        for idx, header in enumerate(headers):
+            headerItem = QTableWidgetItem(header)
+            headerItem.setTextColor("#00557f")
+            font = headerItem.font()
+            font.setBold(True)
+            #headerItem.setFont(font)
+            self.tableWidget_ls.setHorizontalHeaderItem(idx, headerItem)
+        self.tableWidget_ls.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tableWidget_ls.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.tableWidget_ls.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tableWidget_ls.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableWidget_ls.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tableWidget_ls.setShowGrid(False);
+        self.tableWidget_ls.verticalHeader().setHidden(True)
+
     def __init_data(self):
         self.logs = []
         self.user_status = False
@@ -85,7 +110,7 @@ class ClientWindow(QWidget):
         self.pushButton_mkdir.clicked.connect(self.MakeDir)
         self.pushButton_rmdir.clicked.connect(self.RemoveDir)
         self.pushButton_rename.clicked.connect(self.Rename)
-        self.tableWidget_ls.itemSelectionChanged.connect(self.slotItemChanged)
+        self.tableWidget_ls.itemSelectionChanged.connect(self.TableUpdate)
 
 ############################################   util   ############################################
 
@@ -251,6 +276,17 @@ class ClientWindow(QWidget):
                 self.RNTO_handler(text)
             # LIST
 
+    def TableUpdate(self):
+        selected = self.tableWidget_ls.selectedItems()
+        if len(selected):
+            self.selectedFileItems = [_.text() for _ in selected]
+        # filetype
+        ftype = self.selectedFileItems[self.tableTypeCol]
+        if ftype == "d":
+            self.pushButton_rmdir.setEnabled(True)
+        else:
+            self.pushButton_rmdir.setEnabled(False)
+
 ############################################   handler   ############################################
 
     def USER_handler(self, arg):
@@ -322,23 +358,25 @@ class ClientWindow(QWidget):
         if code != 150:
             return False
         data = self.RecvData()
+        for i in range(self.tableWidget_ls.rowCount()):
+            self.tableWidget_ls.removeRow(0)
         data.replace("\r", "")
         for i, line in enumerate(data.split("\n")):
             seg = line.split()
-            self.PrintLog(" ".join(seg))
             if len(seg) == 0:
                 continue
-            updated = " ".join(seg[5:8])
-            filename = " ".join(seg[8:])
-            i_data = [seg[0][0]] # first letter is file's type
-            for i in range(5):
-                i_data.append(seg[i])
-            i_data.append(updated)
-            i_data.append(filename)
-            i_data[1] = i_data[1][1:]
+            print(seg)
+            type = seg[0][0]
+            seg[0] = seg[0][1:]
+            row_data = []
+            for k in range(5):
+                row_data.append(seg[k])
+            row_data.append(" ".join(seg[5:8]))
+            row_data.append(" ".join(seg[8:]))
+            row_data[1] = row_data[1][1:]
             self.tableWidget_ls.insertRow(i)
-            for col, cell_data in enumerate(i_data):
-                self.tableWidget_ls.setItem(i, col, QTableWidgetItem(cell_data))
+            for j, cell_data in enumerate(row_data):
+                self.tableWidget_ls.setItem(i, j, QTableWidgetItem(cell_data))
 
             
         self.RecvRes()
