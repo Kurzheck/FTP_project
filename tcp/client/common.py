@@ -96,13 +96,14 @@ class ClientWindow(QWidget):
         self.radioButton_PASV.toggled.connect(self.SelectPASV)
         self.radioButton_PORT.toggled.connect(self.SelectPORT)
         self.pushButton_clear_log.clicked.connect(self.ClearLog)
-        self.pushButton_go.clicked.connect(self.ChangeDir)
+        self.pushButton_go.clicked.connect(self.GotoDir)
         self.pushButton_mkdir.clicked.connect(self.MakeDir)
         self.pushButton_rmdir.clicked.connect(self.RemoveDir)
         self.pushButton_rename.clicked.connect(self.Rename)
         self.pushButton_upload.clicked.connect(self.Upload)
         self.pushButton_download.clicked.connect(self.Download)
         self.tableWidget_ls.itemSelectionChanged.connect(self.ChangeSelection)
+        self.tableWidget_ls.itemDoubleClicked.connect(self.EnterSelectedDir)
 
 ############################################   util   ############################################
 
@@ -194,6 +195,19 @@ class ClientWindow(QWidget):
             self.listen_socket.close()
             self.listen_socket = None
 
+    def ChangeDir(self, arg):
+        data = None
+        try:
+            assert(self.CWD_handler(arg))
+            assert(self.PWD_handler())
+            data = self.LIST_handler()
+            assert(data != None)
+        except Exception as e:
+            self.PrintLog(e.__str__())
+            return
+        self.lineEdit_cwd.setText(self.cwd)
+        self.RefreshTable(data)
+
     def RefreshTable(self, data=-1):
         if data == None:
             return
@@ -277,19 +291,9 @@ class ClientWindow(QWidget):
         self.mode = self.PORT_MODE
         self.radioButton_PASV.setChecked(False)
 
-    def ChangeDir(self):
+    def GotoDir(self):
         tmp_dir = self.lineEdit_cwd.text()
-        data = None
-        try:
-            assert(self.CWD_handler(tmp_dir))
-            assert(self.PWD_handler())
-            data = self.LIST_handler()
-            assert(data != None)
-        except Exception as e:
-            self.PrintLog(e.__str__())
-            return
-        self.lineEdit_cwd.setText(self.cwd)
-        self.RefreshTable(data)
+        self.ChangeDir(tmp_dir)
 
     def MakeDir(self):
         name, ok = QInputDialog.getText(self, "New Folder", "New Folder Name:", QLineEdit.Normal, "untitled")
@@ -322,11 +326,21 @@ class ClientWindow(QWidget):
         item = self.tableWidget_ls.selectedItems()
         if len(item):
             self.selected_item = [_.text() for _ in item]
+        else:
+            self.pushButton_rmdir.setEnabled(False)
+            return
         type = self.selected_item[0]
         if type == "d":
             self.pushButton_rmdir.setEnabled(True)
         else:
             self.pushButton_rmdir.setEnabled(False)
+
+    def EnterSelectedDir(self):
+        type = self.selected_item[0]
+        name = self.selected_item[7]
+        if type != 'd':
+            return
+        self.ChangeDir(name)
 
 ############################################   handler   ############################################
 
@@ -403,7 +417,6 @@ class ClientWindow(QWidget):
         self.RecvRes()
         return data
         
-
     def STOR_handler(self, arg):
         pass
 
