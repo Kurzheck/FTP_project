@@ -60,8 +60,10 @@ class ClientWindow(QWidget):
     def __init_status(self):
         self.lineEdit_IP.setText("166.111.80.66")
         self.lineEdit_port.setText("21")
-        self.lineEdit_username.setText("anonymous")
-        self.lineEdit_password.setText("password")
+        #self.lineEdit_username.setText("anonymous")
+        self.lineEdit_username.setText("ssast2021")
+        #self.lineEdit_password.setText("password")
+        self.lineEdit_password.setText("%SSAST!Fall42")
         self.label_status_content.setText("not connected")
         self.radioButton_PASV.setChecked(True)
         self.progressBar.setValue(0)
@@ -157,8 +159,26 @@ class ClientWindow(QWidget):
         code, msg = int(res[:3]), res[4:].replace("\r\n", "")
         return (code, msg)
 
-    def SendData(self):
-        pass
+    def SendData(self, arg=None):
+        if not arg:
+            return
+        with open(arg, 'rb') as f:
+            self.progressBar.setMaximum(os.stat(arg).st_size)
+            progress = 0                
+            while True:
+                dataChunk = f.read(10240)
+                if dataChunk == b'': #eof
+                    break
+                # send the chunk
+                p = 0
+                while p < len(dataChunk):
+                    sendSize = self.data_socket.send(dataChunk[p:])
+                    p += sendSize
+                progress += p
+                self.progressBar.setValue(progress)
+                QApplication.processEvents()
+        time.sleep(1)
+        self.progressBar.setValue(0)
 
     def RecvData(self, arg=None):
         if arg:
@@ -318,13 +338,15 @@ class ClientWindow(QWidget):
     def MakeDir(self):
         name, ok = QInputDialog.getText(self, "New Folder", "New Folder Name:", QLineEdit.Normal, "untitled")
         if name and ok:
-            self.MKD_handler(name)
+            if self.MKD_handler(name):
+                self.RefreshTable(self.LIST_handler())
 
     def RemoveDir(self):
         if not self.selected_item:
             return
         rm_dir = self.selected_item[7]
-        self.RMD_handler(rm_dir)
+        if self.RMD_handler(rm_dir):
+            self.RefreshTable(self.LIST_handler())
 
     def Rename(self):
         if not self.selected_item:
@@ -333,11 +355,18 @@ class ClientWindow(QWidget):
         dst_name, ok = QInputDialog.getText(self, "Rename", "New Name:", QLineEdit.Normal, src_name)
         if dst_name and ok:
             if self.RNFR_handler(src_name):
-                self.RNTO_handler(dst_name)
-            # LIST
+                if self.RNTO_handler(dst_name):
+                    self.RefreshTable(self.LIST_handler())
 
     def Upload(self):
-        pass
+        path = QFileDialog.getOpenFileName(self,
+                                    "Choose file to upload",
+                                    ".",
+                                    "All Files (*)")[0]
+        if path:
+            name = path.split("/")[-1]
+            if self.STOR_handler(path, name):
+                self.RefreshTable(self.LIST_handler())
 
     def Download(self):
         if not self.selected_item:
@@ -427,7 +456,8 @@ class ClientWindow(QWidget):
 
     def MKD_handler(self, arg):
         self.SendCmd(cmd("MKD", arg))
-        return self.RecvRes()[0] == 250
+        code = self.RecvRes()[0]
+        return code == 250 or code == 257
 
     def RMD_handler(self, arg):
         self.SendCmd(cmd("RMD", arg))
@@ -445,19 +475,28 @@ class ClientWindow(QWidget):
         self.RecvRes()
         return data
         
-    def STOR_handler(self, arg):
-        pass
+    def STOR_handler(self, src, dst):
+        if not self.DataSetMode():
+            return None
+        self.SendCmd(cmd('STOR', dst))
+        code = self.DataConnect()[0]
+        if code != 150:
+            return None
+        self.SendData(src)
+        self.DataClose()
+        return self.RecvRes()[0] == 226
+        
 
     def RETR_handler(self, src, dst):
         if not self.DataSetMode():
             return None
         self.SendCmd(cmd('RETR', src))
-        code, res = self.DataConnect()
+        code = self.DataConnect()[0]
         if code != 150:
             return None
         self.RecvData(dst)
         self.DataClose()
-        self.RecvRes()
+        return self.RecvRes()[0] == 226
 
     def RNFR_handler(self, arg):
         self.SendCmd(cmd("RNFR", arg))
