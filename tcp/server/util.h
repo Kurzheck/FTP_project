@@ -428,14 +428,16 @@ WriteFile_failed:
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
-int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
+int AbsPath(char* dst, const char* root, const char* cwd, char* arg) {
 	// root = /tmp; cwd = /file/text;
 	// param = ./lala/dada  relative
 	// param = /doc/news  absolute
 	// param = ../../mimimi  relative
+	char param[PATH_LENGTH] = {0};
+	strcpy(param, arg);
 	printf("enter AbsPath\n");
 	printf("root = %s, cwd = %s, param = %s\n", root, cwd, param);
-	if (!dst || !root || !cwd || !param) {
+	if (!dst || !root || !cwd || !arg) {
 		printf("get absolute path failed.\n");
 		return 0;
 	}
@@ -506,6 +508,10 @@ int AbsPath(char* dst, const char* root, const char* cwd, char* param) {
 	if ((dst[strlen(dst) - 1] == '/') && (strlen(dst) > 1)) {
 		dst[strlen(dst) - 1] = '\0';
 	}
+	if (strlen(dst) < 1)
+	{
+		stpcpy(dst, "/");
+	}
 	printf("abs = \"%s\"\n", dst);
 	return 1;
 }
@@ -525,6 +531,7 @@ int ChangeDir(struct ThreadParam* data) {
 	char filePath[PATH_LENGTH] = {0};
 	char cwd[PATH_LENGTH] = {0};
 	strcpy(cwd, data->currDir);
+	printf("param=%s\n", data->request.arg);
 	if (!AbsPath(filePath, rootPath, cwd, data->request.arg)) {
 		return 0;
 	}
@@ -536,6 +543,7 @@ int ChangeDir(struct ThreadParam* data) {
 		return 0;
 	}
 	// strcpy(data->currDir, filePath);
+	printf("param=%s\n", data->request.arg);
 	if (!AbsPath(data->currDir, "/", cwd, data->request.arg))
 	{
 		printf("update currDir error\n");
