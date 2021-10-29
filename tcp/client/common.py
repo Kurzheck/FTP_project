@@ -255,6 +255,7 @@ class ClientWindow(QWidget):
         if data == -1:
             return
         data.replace("\r", "")
+        row = 0
         for i, line in enumerate(data.split("\n")):
             seg = line.split()
             if len(seg) < 9:
@@ -263,14 +264,15 @@ class ClientWindow(QWidget):
             seg[0] = seg[0][1:]
             row_data = []
             row_data.append(type)
-            print(seg)
             for k in range(5):
                 row_data.append(seg[k])
             row_data.append(" ".join(seg[5:8]))
             row_data.append(" ".join(seg[8:]))
-            self.tableWidget_ls.insertRow(i)
+            self.tableWidget_ls.insertRow(row)
             for j, item in enumerate(row_data):
-                self.tableWidget_ls.setItem(i, j, QTableWidgetItem(item))
+                print(row,j,item)
+                self.tableWidget_ls.setItem(row, j, QTableWidgetItem(item))
+            row += 1
 
 ############################################   slot   ############################################
 
@@ -448,7 +450,7 @@ class ClientWindow(QWidget):
         self.SendCmd(cmd("PWD"))
         code, msg = self.RecvRes()
         if code == 257:
-            self.cwd = msg.replace("\"", "")
+            self.cwd = msg.split("\"")[1]
             return True
         return False
 
@@ -507,3 +509,6 @@ class ClientWindow(QWidget):
     def RNTO_handler(self, arg):
         self.SendCmd(cmd("RNFR", arg))
         return self.RecvRes()[0] == 250
+
+
+#TODO: 路径出现"///"解决方案may be: client 不发送相对路径而发送绝对路径
