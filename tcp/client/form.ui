@@ -298,7 +298,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_rm">
+       <widget class="QPushButton" name="pushButton_rmdir">
         <property name="text">
          <string>Remove</string>
         </property>
