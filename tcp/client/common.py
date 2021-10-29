@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 from util import *
 
-from PySide2.QtWidgets import QLabel, QProgressBar, QPushButton, QRadioButton, QSpinBox, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog
+from PySide2.QtWidgets import QLabel, QProgressBar, QPushButton, QRadioButton, QSpinBox, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog, QTableWidgetItem
 from PySide2.QtCore import QFile
 from PySide2.QtUiTools import QUiLoader
 
@@ -85,6 +85,7 @@ class ClientWindow(QWidget):
         self.pushButton_mkdir.clicked.connect(self.MakeDir)
         self.pushButton_rmdir.clicked.connect(self.RemoveDir)
         self.pushButton_rename.clicked.connect(self.Rename)
+        self.tableWidget_ls.itemSelectionChanged.connect(self.slotItemChanged)
 
 ############################################   util   ############################################
 
@@ -120,9 +121,6 @@ class ClientWindow(QWidget):
         except Exception as e:
             self.PrintLog(e.__str__())
 
-    def SendData(self):
-        pass
-
     def RecvRes(self):
         res = b""
         while True:
@@ -136,8 +134,23 @@ class ClientWindow(QWidget):
         code, msg = int(res[:3]), res[4:].replace("\r\n", "")
         return (code, msg)
 
-    def RecvData(self):
+    def SendData(self):
         pass
+
+    def RecvData(self, arg=None):
+        if arg:
+            pass
+        else:
+            data = b''
+            while True:
+                buf = self.data_socket.recv(1000)
+                if not buf:
+                    break
+                else:
+                    data += buf
+            if isinstance(data, bytes):
+                data = data.decode()
+            return data
 
     def DataSetMode(self):
         if self.mode == self.PASV_MODE:
@@ -308,6 +321,28 @@ class ClientWindow(QWidget):
         code, res = self.DataConnect()
         if code != 150:
             return False
+        data = self.RecvData()
+        data.replace("\r", "")
+        for i, line in enumerate(data.split("\n")):
+            seg = line.split()
+            self.PrintLog(" ".join(seg))
+            if len(seg) == 0:
+                continue
+            updated = " ".join(seg[5:8])
+            filename = " ".join(seg[8:])
+            i_data = [seg[0][0]] # first letter is file's type
+            for i in range(5):
+                i_data.append(seg[i])
+            i_data.append(updated)
+            i_data.append(filename)
+            i_data[1] = i_data[1][1:]
+            self.tableWidget_ls.insertRow(i)
+            for col, cell_data in enumerate(i_data):
+                self.tableWidget_ls.setItem(i, col, QTableWidgetItem(cell_data))
+
+            
+        self.RecvRes()
+        
 
     def STOR_handler(self, arg):
         pass
