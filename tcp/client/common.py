@@ -270,7 +270,6 @@ class ClientWindow(QWidget):
             row_data.append(" ".join(seg[8:]))
             self.tableWidget_ls.insertRow(row)
             for j, item in enumerate(row_data):
-                print(row,j,item)
                 self.tableWidget_ls.setItem(row, j, QTableWidgetItem(item))
             row += 1
 
@@ -507,7 +506,7 @@ class ClientWindow(QWidget):
         return self.RecvRes()[0] == 350
 
     def RNTO_handler(self, arg):
-        self.SendCmd(cmd("RNFR", arg))
+        self.SendCmd(cmd("RNTO", arg))
         return self.RecvRes()[0] == 250
 
 
