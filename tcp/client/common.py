@@ -63,23 +63,12 @@ class ClientWindow(QWidget):
         self.label_status_content.setText("not connected")
         self.radioButton_PASV.setChecked(True)
 
-        headers = ["Type", "Permission", "Num", "User", "Group", "Size", "Updated", "Name"]
-        self.tableTypeCol = 0
-        self.tablePermissionCol = 1
-        self.tableNumCol = 2
-        self.tableUserCol = 3
-        self.tableGroupCol = 4
-        self.tableSizeCol = 5
-        self.tableUpdatedCol = 6
-        self.tableNameCol = 7
-        self.tableWidget_ls.setColumnCount(len(headers))
-        for idx, header in enumerate(headers):
-            headerItem = QTableWidgetItem(header)
-            headerItem.setTextColor("#00557f")
-            font = headerItem.font()
-            font.setBold(True)
-            #headerItem.setFont(font)
-            self.tableWidget_ls.setHorizontalHeaderItem(idx, headerItem)
+        titles = ["Type", "Permission", "Num", "User", "Group", "Size", "Updated", "Name"]
+        self.tableWidget_ls.setColumnCount(len(titles))
+        for i, title in enumerate(titles):
+            item = QTableWidgetItem(title)
+            item.setTextColor("#00557f")
+            self.tableWidget_ls.setHorizontalHeaderItem(i, item)
         self.tableWidget_ls.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.tableWidget_ls.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.tableWidget_ls.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -194,6 +183,38 @@ class ClientWindow(QWidget):
             return self.RecvRes()
         return False
 
+    def DataClose(self):
+        if self.data_socket:
+            self.data_socket.close()
+            self.data_socket = None
+        if self.listen_socket:
+            self.listen_socket.close()
+            self.listen_socket = None
+
+    def RefreshTable(self, data=-1):
+        if data == None:
+            return
+        for i in range(self.tableWidget_ls.rowCount()):
+            self.tableWidget_ls.removeRow(0)
+        if data == -1:
+            return
+        data.replace("\r", "")
+        for i, line in enumerate(data.split("\n")):
+            seg = line.split()
+            if len(seg) == 0:
+                continue
+            type = seg[0][0]
+            seg[0] = seg[0][1:]
+            row_data = []
+            row_data.append(type)
+            for k in range(5):
+                row_data.append(seg[k])
+            row_data.append(" ".join(seg[5:8]))
+            row_data.append(" ".join(seg[8:]))
+            self.tableWidget_ls.insertRow(i)
+            for j, item in enumerate(row_data):
+                self.tableWidget_ls.setItem(i, j, QTableWidgetItem(item))
+
 ############################################   slot   ############################################
 
     def Login(self):
@@ -224,7 +245,7 @@ class ClientWindow(QWidget):
             self.TYPE_handler("I")
             if self.PWD_handler():
                 self.lineEdit_cwd.setText(self.cwd)
-            self.LIST_handler(self.cwd)
+            self.RefreshTable(self.LIST_handler(self.cwd))
         else:
             self.label_status_content.setText("login error")
 
@@ -241,6 +262,7 @@ class ClientWindow(QWidget):
         self.listen_socket = None
         self.label_status_content.setText("not connected")
         self.lineEdit_cwd.setText("")
+        self.RefreshTable()
 
     def SelectPASV(self):
         self.mode = self.PASV_MODE
@@ -252,13 +274,17 @@ class ClientWindow(QWidget):
 
     def ChangeDir(self):
         tmp_dir = self.lineEdit_cwd.text()
+        data = None
         try:
             assert(self.CWD_handler(tmp_dir))
             assert(self.PWD_handler())
-            assert(self.LIST_handler())
+            data = self.LIST_handler()
+            assert(data != None)
         except Exception as e:
             self.PrintLog(e.__str__())
+            return
         self.lineEdit_cwd.setText(self.cwd)
+        self.RefreshTable(data)
 
     def MakeDir(self):
         text, ok = QInputDialog.getText(self, "New Folder", "New Folder Name:", QLineEdit.Normal, "untitled")
@@ -280,9 +306,8 @@ class ClientWindow(QWidget):
         selected = self.tableWidget_ls.selectedItems()
         if len(selected):
             self.selectedFileItems = [_.text() for _ in selected]
-        # filetype
-        ftype = self.selectedFileItems[self.tableTypeCol]
-        if ftype == "d":
+        type = self.selectedFileItems[0]
+        if type == "d":
             self.pushButton_rmdir.setEnabled(True)
         else:
             self.pushButton_rmdir.setEnabled(False)
@@ -352,34 +377,15 @@ class ClientWindow(QWidget):
 
     def LIST_handler(self, arg=""):
         if not self.DataSetMode():
-            return False
+            return None
         self.SendCmd(cmd("LIST", arg))
         code, res = self.DataConnect()
         if code != 150:
-            return False
+            return None
         data = self.RecvData()
-        for i in range(self.tableWidget_ls.rowCount()):
-            self.tableWidget_ls.removeRow(0)
-        data.replace("\r", "")
-        for i, line in enumerate(data.split("\n")):
-            seg = line.split()
-            if len(seg) == 0:
-                continue
-            print(seg)
-            type = seg[0][0]
-            seg[0] = seg[0][1:]
-            row_data = []
-            for k in range(5):
-                row_data.append(seg[k])
-            row_data.append(" ".join(seg[5:8]))
-            row_data.append(" ".join(seg[8:]))
-            row_data[1] = row_data[1][1:]
-            self.tableWidget_ls.insertRow(i)
-            for j, cell_data in enumerate(row_data):
-                self.tableWidget_ls.setItem(i, j, QTableWidgetItem(cell_data))
-
-            
+        self.DataClose()
         self.RecvRes()
+        return data
         
 
     def STOR_handler(self, arg):
