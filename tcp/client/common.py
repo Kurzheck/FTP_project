@@ -71,6 +71,10 @@ class ClientWindow(QWidget):
         self.mode = self.PASV_MODE
         self.has_data_con = False
         self.cwd = ""
+        self.data_IP = ""
+        self.data_port = -1
+        self.data_socket = None
+        self.listen_socket = None
 
     def __init_connect(self):
         self.pushButton_login.clicked.connect(self.Login)
@@ -127,11 +131,22 @@ class ClientWindow(QWidget):
         code, msg = int(res[:3]), res[4:].replace("\r\n", "")
         return (code, msg)
 
+    def DataSetMode(self):
+        if self.mode == self.PASV_MODE:
+            return self.PASV_handler()
+        elif self.mode == self.PORT_MODE:
+            return self.PORT_handler()
+
     def DataConnect(self):
         if self.mode == self.PASV_MODE:
-            self.PASV_handler()
+            self.data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.data_socket.connect((self.data_IP, self.data_port))
+            return self.RecvRes()
         elif self.mode == self.PORT_MODE:
-            self.PORT_handler()
+            assert(self.listen_socket)
+            self.data_socket = self.listen_socket.accept()[0]
+            return self.RecvRes()
+        return False
 
 ############################################   slot   ############################################
 
@@ -174,7 +189,10 @@ class ClientWindow(QWidget):
         self.OnStatusChange()
         self.has_data_con = False
         self.cwd = ""
-        self.SelectPASV()
+        self.data_IP = ""
+        self.data_port = -1
+        self.data_socket = None
+        self.listen_socket = None
         self.label_status_content.setText("not connected")
         self.lineEdit_cwd.setText("")
 
@@ -191,6 +209,7 @@ class ClientWindow(QWidget):
         try:
             assert(self.CWD_handler(tmp_dir))
             assert(self.PWD_handler())
+            assert(self.LIST_handler())
         except Exception as e:
             self.PrintLog(e.__str__())
         self.lineEdit_cwd.setText(self.cwd)
@@ -216,10 +235,23 @@ class ClientWindow(QWidget):
     def PASV_handler(self):
         self.SendCmd(cmd("PASV"))
         code, msg = self.RecvRes()
+        seg = re.findall(re.compile(r'[(](.*)[)]', re.S), msg)[0].split(',')
+        self.data_IP = ".".join(seg[:-2])
+        self.data_port = int(seg[-2]) * 256 + int(seg[-1])
+        self.data_socket = None
+        return code == 227
 
     def PORT_handler(self):
-        self.SendCmd(cmd("PORT"))
-        self.RecvRes()
+        local = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        local.connect(("8.8.8.8", 80))
+        IP =  local.getsockname()[0]
+        self.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.listen_socket.bind(("0.0.0.0", 0))
+        self.listen_socket.listen(1)
+        port = self.listen_socket.getsockname()[1]
+        self.SendCmd(cmd("PORT", ",".join(IP.split(".")) + "," + str(port//256) + "," + str(port%256)))
+        code, msg = self.RecvRes()
+        return code == 227
 
     def QUIT_handler(self):
         self.SendCmd(cmd("QUIT"))
@@ -244,8 +276,12 @@ class ClientWindow(QWidget):
         pass
 
     def LIST_handler(self, arg=""):
+        if not self.DataSetMode():
+            return False
         self.SendCmd(cmd("LIST", arg))
-        return self.RecvRes()[0] == 150
+        code, res = self.DataConnect()
+        if code != 150:
+            return False
 
     def STOR_handler(self):
         pass
