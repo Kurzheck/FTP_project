@@ -277,9 +277,16 @@
        <widget class="QLineEdit" name="lineEdit_cwd"/>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_go">
+       <widget class="QPushButton" name="pushButton_back">
         <property name="text">
-         <string>Go</string>
+         <string>Back</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_enter">
+        <property name="text">
+         <string>Enter</string>
         </property>
        </widget>
       </item>

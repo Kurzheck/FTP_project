@@ -44,7 +44,8 @@ class ClientWindow(QWidget):
         self.pushButton_logout = self.findChild(QPushButton, "pushButton_logout")
         self.label_status_content = self.findChild(QLabel, "label_status_content")
         self.lineEdit_cwd = self.findChild(QLineEdit, "lineEdit_cwd")
-        self.pushButton_go = self.findChild(QPushButton, "pushButton_go")
+        self.pushButton_back = self.findChild(QPushButton, "pushButton_back")
+        self.pushButton_enter = self.findChild(QPushButton, "pushButton_enter")
         self.tableWidget_ls = self.findChild(QTableWidget, "tableWidget_ls")
         self.pushButton_mkdir = self.findChild(QPushButton, "pushButton_mkdir")
         self.pushButton_rmdir = self.findChild(QPushButton, "pushButton_rmdir")
@@ -96,7 +97,8 @@ class ClientWindow(QWidget):
         self.radioButton_PASV.toggled.connect(self.SelectPASV)
         self.radioButton_PORT.toggled.connect(self.SelectPORT)
         self.pushButton_clear_log.clicked.connect(self.ClearLog)
-        self.pushButton_go.clicked.connect(self.GotoDir)
+        self.pushButton_back.clicked.connect(self.GoBack)
+        self.pushButton_enter.clicked.connect(self.GotoDir)
         self.pushButton_mkdir.clicked.connect(self.MakeDir)
         self.pushButton_rmdir.clicked.connect(self.RemoveDir)
         self.pushButton_rename.clicked.connect(self.Rename)
@@ -110,7 +112,8 @@ class ClientWindow(QWidget):
     def OnStatusChange(self):
         flag = self.user_status
         self.lineEdit_cwd.setEnabled(flag)
-        self.pushButton_go.setEnabled(flag)
+        self.pushButton_enter.setEnabled(flag)
+        self.pushButton_back.setEnabled(flag)
         self.pushButton_mkdir.setEnabled(flag)
         self.pushButton_rmdir.setEnabled(flag)
         self.pushButton_upload.setEnabled(flag)
@@ -294,6 +297,9 @@ class ClientWindow(QWidget):
     def GotoDir(self):
         tmp_dir = self.lineEdit_cwd.text()
         self.ChangeDir(tmp_dir)
+
+    def GoBack(self):
+        self.ChangeDir("..")
 
     def MakeDir(self):
         name, ok = QInputDialog.getText(self, "New Folder", "New Folder Name:", QLineEdit.Normal, "untitled")
