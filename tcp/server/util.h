@@ -42,7 +42,7 @@ int SetRequest(struct ThreadParam* data) {
 	if (cmdLength < 0) {
 		cmdLength = strlen(sentence);
 	}
-	printf("cmd length = %d\n", cmdLength);
+	//printf("cmd length = %d\n", cmdLength);
 	if (cmdLength > 4) {
 		printf("command too long.\n");
 		return 0;
@@ -405,7 +405,7 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 		{
 			break;
 		}
-		printf("write: %s\n", dataBuffer);
+		//printf("write: %s\n", dataBuffer);
 		write(data->datafd, dataBuffer, readLen);
 	}
 	data->readPos = 0;
@@ -512,6 +512,16 @@ int AbsPath(char* dst, const char* root, const char* cwd, char* arg) {
 	{
 		stpcpy(dst, "/");
 	}
+	printf("ori dst:%s\n", dst);
+	while (dst[0] == '/' && strlen(dst) > 1)
+	{
+		if (dst[1] != '/')
+		{
+			break;
+		}
+		dst++;
+		printf("dst:%s\n", dst);
+	}
 	printf("abs = \"%s\"\n", dst);
 	return 1;
 }
@@ -543,18 +553,18 @@ int ChangeDir(struct ThreadParam* data) {
 		return 0;
 	}
 	// strcpy(data->currDir, filePath);
-	printf("param=%s\n", data->request.arg);
 	if (!AbsPath(data->currDir, "/", cwd, data->request.arg))
 	{
 		printf("update currDir error\n");
 		return 0;
 	}
+	printf("!!!currDir = %s!!!\n", data->currDir);
 	return 1;
 };
 
 int ListDir(const char *file, const char *dir)
 {
-	printf("enter ListDir\n");
+	//printf("enter ListDir\n");
 	char cmd[PATH_LENGTH];
 	sprintf(cmd, "ls -lh %s", dir);
 	FILE *line = popen(cmd, "r");
