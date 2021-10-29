@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 from util import *
 
-from PySide2.QtWidgets import QLabel, QProgressBar, QPushButton, QRadioButton, QSpinBox, QTableWidget, QTextEdit, QWidget, QLineEdit
+from PySide2.QtWidgets import QLabel, QProgressBar, QPushButton, QRadioButton, QSpinBox, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog
 from PySide2.QtCore import QFile
 from PySide2.QtUiTools import QUiLoader
 
@@ -47,8 +47,7 @@ class ClientWindow(QWidget):
         self.pushButton_go = self.findChild(QPushButton, "pushButton_go")
         self.tableWidget_ls = self.findChild(QTableWidget, "tableWidget_ls")
         self.pushButton_mkdir = self.findChild(QPushButton, "pushButton_mkdir")
-        self.pushButton_rm = self.findChild(QPushButton, "pushButton_rm")
-        self.pushButton_mkdir = self.findChild(QPushButton, "pushButton_mkdir")
+        self.pushButton_rmdir = self.findChild(QPushButton, "pushButton_rmdir")
         self.pushButton_upload = self.findChild(QPushButton, "pushButton_upload")
         self.pushButton_download = self.findChild(QPushButton, "pushButton_download")
         self.pushButton_rename = self.findChild(QPushButton, "pushButton_rename")
@@ -83,6 +82,9 @@ class ClientWindow(QWidget):
         self.radioButton_PORT.toggled.connect(self.SelectPORT)
         self.pushButton_clear_log.clicked.connect(self.ClearLog)
         self.pushButton_go.clicked.connect(self.ChangeDir)
+        self.pushButton_mkdir.clicked.connect(self.MakeDir)
+        self.pushButton_rmdir.clicked.connect(self.RemoveDir)
+        self.pushButton_rename.clicked.connect(self.Rename)
 
 ############################################   util   ############################################
 
@@ -91,7 +93,7 @@ class ClientWindow(QWidget):
         self.lineEdit_cwd.setEnabled(flag)
         self.pushButton_go.setEnabled(flag)
         self.pushButton_mkdir.setEnabled(flag)
-        self.pushButton_rm.setEnabled(flag)
+        self.pushButton_rmdir.setEnabled(flag)
         self.pushButton_upload.setEnabled(flag)
         self.pushButton_download.setEnabled(flag)
         self.pushButton_rename.setEnabled(flag)
@@ -214,6 +216,22 @@ class ClientWindow(QWidget):
             self.PrintLog(e.__str__())
         self.lineEdit_cwd.setText(self.cwd)
 
+    def MakeDir(self):
+        text, ok = QInputDialog.getText(self, "New Folder", "New Folder Name:", QLineEdit.Normal, "untitled")
+        if text and ok:
+            self.MKD_handler(text)
+
+    def RemoveDir(self):
+        rm_dir = "/a"
+        self.RMD_handler(rm_dir)
+
+    def Rename(self):
+        text, ok = QInputDialog.getText(self, "Rename", "New Name:", QLineEdit.Normal, "untitled")
+        if text and ok:
+            if self.RNFR_handler():
+                self.RNTO_handler(text)
+            # LIST
+
 ############################################   handler   ############################################
 
     def USER_handler(self, arg):
@@ -269,11 +287,13 @@ class ClientWindow(QWidget):
         self.SendCmd(cmd("CWD", arg))
         return self.RecvRes()[0] == 250
 
-    def MKD_handler(self):
-        pass
+    def MKD_handler(self, arg):
+        self.SendCmd(cmd("MKD", arg))
+        return self.RecvRes()[0] == 250
 
-    def RMD_handler(self):
-        pass
+    def RMD_handler(self, arg):
+        self.SendCmd(cmd("RMD", arg))
+        return self.RecvRes()[0] == 250
 
     def LIST_handler(self, arg=""):
         if not self.DataSetMode():
@@ -283,14 +303,16 @@ class ClientWindow(QWidget):
         if code != 150:
             return False
 
-    def STOR_handler(self):
+    def STOR_handler(self, arg):
         pass
 
-    def RETR_handler(self):
+    def RETR_handler(self, arg):
         pass
 
-    def RNFR_handler(self):
-        pass
+    def RNFR_handler(self, arg):
+        self.SendCmd(cmd("RNFR", arg))
+        return self.RecvRes()[0] == 350
 
-    def RNTO_handler(self):
-        pass
+    def RNTO_handler(self, arg):
+        self.SendCmd(cmd("RNFR", arg))
+        return self.RecvRes()[0] == 250
