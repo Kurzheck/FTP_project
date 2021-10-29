@@ -25,7 +25,8 @@ enum RequestType {
 enum ClientState {
 	NO_USER,
 	HAS_USER,
-	HAS_PASS
+	HAS_PASS,
+	HAS_RNFR
 };
 
 enum DataConnectionMode {
@@ -51,6 +52,7 @@ struct ThreadParam {
 	int dataPort; // = -1;
 	char sentence[SENTENCE_LENGTH]; // = {0};
 	char currDir[PATH_LENGTH]; // = {0}; // relative to rootPath
+	char RNFRPath[PATH_LENGTH]; // store RNFR path
 	enum ClientState clientState; // = NO_USER;
 	enum DataConnectionMode dataConnectionMode; // = NO_CONNECTION;
 	struct Request request;

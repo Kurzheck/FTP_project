@@ -370,11 +370,50 @@ int RMD_Handler(struct ThreadParam* data) {
 };
 
 int RNFR_Handler(struct ThreadParam* data) {
-	return 1;
+	char responseStr[RESPONSE_LENGTH] = {0};
+	char path[PATH_LENGTH] = {0};
+	if (!AbsPath(path, rootPath, data->currDir, data->request.arg)) {
+		printf("!!!no\n");
+		strcpy(responseStr, "530 invalid path.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	struct stat s = {0};
+	stat(path, &s);
+	printf("rename path: %s\n", path);
+	if (!S_ISDIR(s.st_mode) && !S_ISREG(s.st_mode)) {
+		printf("!!!yes\n");
+		printf("%d, %d\n", !S_ISDIR(s.st_mode), !S_ISREG(s.st_mode));
+		strcpy(responseStr, "530 invalid path.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	data->clientState = HAS_RNFR;
+	strcpy(data->RNFRPath, path);
+	strcpy(responseStr, "350 RNFR ready.\r\n");
+	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int RNTO_Handler(struct ThreadParam* data) {
-	return 1;
+	char responseStr[RESPONSE_LENGTH] = {0};
+	if (data->clientState != HAS_RNFR)
+	{
+		strcpy(responseStr, "503 need RNFR first.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	data->clientState = HAS_PASS;
+	char path[PATH_LENGTH] = {0};
+	if (!AbsPath(path, rootPath, data->currDir, data->request.arg)) {
+		strcpy(responseStr, "530 invalid path.\r\n");
+		return WriteResponse(data->connfd, strlen(responseStr), responseStr);
+	}
+	if (!rename(data->RNFRPath, path))
+	{
+		strcpy(responseStr, "250 rename OK.\r\n");
+	}
+	else
+	{
+		strcpy(responseStr, "550 rename failed.\r\n");
+	}
+	WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
 int REST_Handler(struct ThreadParam* data)
