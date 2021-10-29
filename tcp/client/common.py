@@ -58,10 +58,11 @@ class ClientWindow(QWidget):
         self.pushButton_clear_log = self.findChild(QPushButton, "pushButton_clear_log")
 
     def __init_status(self):
-        self.lineEdit_IP.setText("166.111.80.66")
+        #self.lineEdit_IP.setText("166.111.80.66")
+        self.lineEdit_IP.setText("127.0.0.1")
         self.lineEdit_port.setText("21")
-        #self.lineEdit_username.setText("anonymous")
-        self.lineEdit_username.setText("ssast2021")
+        self.lineEdit_username.setText("anonymous")
+        #self.lineEdit_username.setText("ssast2021")
         #self.lineEdit_password.setText("password")
         self.lineEdit_password.setText("%SSAST!Fall42")
         self.label_status_content.setText("not connected")
@@ -300,7 +301,7 @@ class ClientWindow(QWidget):
             self.TYPE_handler("I")
             if self.PWD_handler():
                 self.lineEdit_cwd.setText(self.cwd)
-                self.RefreshTable(self.LIST_handler(self.cwd))
+                self.RefreshTable(self.LIST_handler())
         else:
             self.label_status_content.setText("login error")
 
