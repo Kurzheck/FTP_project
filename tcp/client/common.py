@@ -88,6 +88,7 @@ class ClientWindow(QWidget):
         self.data_port = -1
         self.data_socket = None
         self.listen_socket = None
+        self.selected_item = None
 
     def __init_connect(self):
         self.pushButton_login.clicked.connect(self.Login)
@@ -99,7 +100,9 @@ class ClientWindow(QWidget):
         self.pushButton_mkdir.clicked.connect(self.MakeDir)
         self.pushButton_rmdir.clicked.connect(self.RemoveDir)
         self.pushButton_rename.clicked.connect(self.Rename)
-        self.tableWidget_ls.itemSelectionChanged.connect(self.TableUpdate)
+        self.pushButton_upload.clicked.connect(self.Upload)
+        self.pushButton_download.clicked.connect(self.Download)
+        self.tableWidget_ls.itemSelectionChanged.connect(self.ChangeSelection)
 
 ############################################   util   ############################################
 
@@ -194,6 +197,7 @@ class ClientWindow(QWidget):
     def RefreshTable(self, data=-1):
         if data == None:
             return
+        self.selected_item = None
         for i in range(self.tableWidget_ls.rowCount()):
             self.tableWidget_ls.removeRow(0)
         if data == -1:
@@ -245,7 +249,7 @@ class ClientWindow(QWidget):
             self.TYPE_handler("I")
             if self.PWD_handler():
                 self.lineEdit_cwd.setText(self.cwd)
-            self.RefreshTable(self.LIST_handler(self.cwd))
+                self.RefreshTable(self.LIST_handler(self.cwd))
         else:
             self.label_status_content.setText("login error")
 
@@ -253,16 +257,17 @@ class ClientWindow(QWidget):
         if self.user_status:
             self.QUIT_handler()
         self.user_status = False
-        self.OnStatusChange()
         self.has_data_con = False
         self.cwd = ""
         self.data_IP = ""
         self.data_port = -1
         self.data_socket = None
         self.listen_socket = None
+        self.selected_item = None
         self.label_status_content.setText("not connected")
         self.lineEdit_cwd.setText("")
         self.RefreshTable()
+        self.OnStatusChange()
 
     def SelectPASV(self):
         self.mode = self.PASV_MODE
@@ -287,26 +292,37 @@ class ClientWindow(QWidget):
         self.RefreshTable(data)
 
     def MakeDir(self):
-        text, ok = QInputDialog.getText(self, "New Folder", "New Folder Name:", QLineEdit.Normal, "untitled")
-        if text and ok:
-            self.MKD_handler(text)
+        name, ok = QInputDialog.getText(self, "New Folder", "New Folder Name:", QLineEdit.Normal, "untitled")
+        if name and ok:
+            self.MKD_handler(name)
 
     def RemoveDir(self):
-        rm_dir = "/a"
+        if not self.selected_item:
+            return
+        rm_dir = self.selected_item[7]
         self.RMD_handler(rm_dir)
 
     def Rename(self):
-        text, ok = QInputDialog.getText(self, "Rename", "New Name:", QLineEdit.Normal, "untitled")
-        if text and ok:
-            if self.RNFR_handler():
-                self.RNTO_handler(text)
+        if not self.selected_item:
+            return
+        src_name = self.selected_item[7]
+        dst_name, ok = QInputDialog.getText(self, "Rename", "New Name:", QLineEdit.Normal, src_name)
+        if dst_name and ok:
+            if self.RNFR_handler(src_name):
+                self.RNTO_handler(dst_name)
             # LIST
 
-    def TableUpdate(self):
-        selected = self.tableWidget_ls.selectedItems()
-        if len(selected):
-            self.selectedFileItems = [_.text() for _ in selected]
-        type = self.selectedFileItems[0]
+    def Upload(self):
+        pass
+
+    def Download(self):
+        pass
+
+    def ChangeSelection(self):
+        item = self.tableWidget_ls.selectedItems()
+        if len(item):
+            self.selected_item = [_.text() for _ in item]
+        type = self.selected_item[0]
         if type == "d":
             self.pushButton_rmdir.setEnabled(True)
         else:
