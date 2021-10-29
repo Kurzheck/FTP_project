@@ -1,11 +1,12 @@
 import os
 import socket
 import re
+import time
 from pathlib import Path
 import sys
 from util import *
 
-from PySide2.QtWidgets import QLabel, QProgressBar, QPushButton, QRadioButton, QSpinBox, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog, QTableWidgetItem, QHeaderView, QAbstractItemView
+from PySide2.QtWidgets import QApplication, QLabel, QProgressBar, QPushButton, QRadioButton, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog, QTableWidgetItem, QHeaderView, QAbstractItemView, QFileDialog
 from PySide2.QtCore import QFile
 from PySide2.QtUiTools import QUiLoader
 
@@ -63,6 +64,7 @@ class ClientWindow(QWidget):
         self.lineEdit_password.setText("password")
         self.label_status_content.setText("not connected")
         self.radioButton_PASV.setChecked(True)
+        self.progressBar.setValue(0)
 
         titles = ["Type", "Permission", "Num", "User", "Group", "Size", "Updated", "Name"]
         self.tableWidget_ls.setColumnCount(len(titles))
@@ -160,7 +162,19 @@ class ClientWindow(QWidget):
 
     def RecvData(self, arg=None):
         if arg:
-            pass
+            self.progressBar.setMaximum(uni_size(self.selected_item[5]))
+            with open(arg, 'wb') as f:
+                progress = 0
+                while True:
+                    self.progressBar.setValue(progress)
+                    QApplication.processEvents()
+                    buf = self.data_socket.recv(1000)
+                    if not buf:
+                        break
+                    f.write(buf)
+                    progress += len(buf)
+            time.sleep(1)
+            self.progressBar.setValue(0)
         else:
             data = b''
             while True:
@@ -326,7 +340,15 @@ class ClientWindow(QWidget):
         pass
 
     def Download(self):
-        pass
+        if not self.selected_item:
+            return
+        name = self.selected_item[7]
+        dst, ok = QFileDialog.getSaveFileName(self,
+                                    "Save as",
+                                    f"./{name}",
+                                    "All Files (*)")
+        if dst and ok:
+            self.RETR_handler(name, dst)
 
     def ChangeSelection(self):
         item = self.tableWidget_ls.selectedItems()
@@ -426,8 +448,16 @@ class ClientWindow(QWidget):
     def STOR_handler(self, arg):
         pass
 
-    def RETR_handler(self, arg):
-        pass
+    def RETR_handler(self, src, dst):
+        if not self.DataSetMode():
+            return None
+        self.SendCmd(cmd('RETR', src))
+        code, res = self.DataConnect()
+        if code != 150:
+            return None
+        self.RecvData(dst)
+        self.DataClose()
+        self.RecvRes()
 
     def RNFR_handler(self, arg):
         self.SendCmd(cmd("RNFR", arg))
