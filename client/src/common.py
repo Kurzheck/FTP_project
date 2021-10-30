@@ -2,8 +2,8 @@ import os
 import socket
 import re
 import time
-from pathlib import Path
 import sys
+from pathlib import Path
 from util import *
 
 from PySide2.QtWidgets import QApplication, QLabel, QProgressBar, QPushButton, QRadioButton, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog, QTableWidgetItem, QHeaderView, QAbstractItemView, QFileDialog
@@ -60,13 +60,10 @@ class ClientWindow(QWidget):
         self.pushButton_clear_log = self.findChild(QPushButton, "pushButton_clear_log")
 
     def __init_status(self):
-        #self.lineEdit_IP.setText("166.111.80.66")
         self.lineEdit_IP.setText("127.0.0.1")
         self.lineEdit_port.setText("21")
         self.lineEdit_username.setText("anonymous")
-        #self.lineEdit_username.setText("ssast2021")
-        #self.lineEdit_password.setText("password")
-        self.lineEdit_password.setText("%SSAST!Fall42")
+        self.lineEdit_password.setText("password")
         self.label_status_content.setText("not connected")
         self.radioButton_PASV.setChecked(True)
         self.progressBar.setValue(0)
@@ -82,7 +79,7 @@ class ClientWindow(QWidget):
         self.tableWidget_ls.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tableWidget_ls.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableWidget_ls.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.tableWidget_ls.setShowGrid(False);
+        self.tableWidget_ls.setShowGrid(True);
         self.tableWidget_ls.verticalHeader().setHidden(True)
 
     def __init_data(self):
@@ -174,13 +171,12 @@ class ClientWindow(QWidget):
             self.progressBar.setMaximum(os.stat(arg).st_size)
             progress = 0                
             while True:
-                dataChunk = f.read(10240)
-                if dataChunk == b'': #eof
+                buf = f.read(10240)
+                if buf == b'':
                     break
-                # send the chunk
                 p = 0
-                while p < len(dataChunk):
-                    sendSize = self.data_socket.send(dataChunk[p:])
+                while p < len(buf):
+                    sendSize = self.data_socket.send(buf[p:])
                     p += sendSize
                 progress += p
                 self.progressBar.setValue(progress)
@@ -515,6 +511,3 @@ class ClientWindow(QWidget):
     def RNTO_handler(self, arg):
         self.SendCmd(cmd("RNTO", arg))
         return self.RecvRes()[0] == 250
-
-
-#TODO: 路径出现"///"解决方案may be: client 不发送相对路径而发送绝对路径
