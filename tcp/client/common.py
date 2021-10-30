@@ -8,6 +8,7 @@ from util import *
 
 from PySide2.QtWidgets import QApplication, QLabel, QProgressBar, QPushButton, QRadioButton, QTableWidget, QTextEdit, QWidget, QLineEdit, QInputDialog, QTableWidgetItem, QHeaderView, QAbstractItemView, QFileDialog
 from PySide2.QtCore import QFile
+from PySide2.QtGui import QCloseEvent
 from PySide2.QtUiTools import QUiLoader
 
 
@@ -114,6 +115,10 @@ class ClientWindow(QWidget):
         self.tableWidget_ls.itemDoubleClicked.connect(self.EnterSelectedDir)
 
 ############################################   util   ############################################
+
+    def closeEvent(self, event: QCloseEvent):
+        self.QUIT_handler()
+        return super().closeEvent(event)
 
     def OnStatusChange(self):
         flag = self.user_status
