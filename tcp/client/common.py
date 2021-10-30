@@ -439,7 +439,7 @@ class ClientWindow(QWidget):
         port = self.listen_socket.getsockname()[1]
         self.SendCmd(cmd("PORT", ",".join(IP.split(".")) + "," + str(port//256) + "," + str(port%256)))
         code, msg = self.RecvRes()
-        return code == 227
+        return code == 200
 
     def QUIT_handler(self):
         self.SendCmd(cmd("QUIT"))
