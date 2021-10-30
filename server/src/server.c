@@ -18,8 +18,6 @@ int main(int argc, char **argv) {
 		printf("arg error\n");
 		return 1;
 	}
-	//printf("port = %d, root = %s\n", listenPort, rootPath);
-	//SocketInit();
 	int connfd;
 	struct sockaddr_in addr;
 
@@ -58,28 +56,14 @@ int main(int argc, char **argv) {
 		memset(params->sentence, 0, SENTENCE_LENGTH);
 		memset(params->currDir, 0, PATH_LENGTH);
 		strcpy(params->currDir, "/");
-		// strcpy(params->currDir, rootPath);
 		params->clientState = NO_USER;
 		params->dataConnectionMode = NO_CONNECTION;
 		memset(params->request.arg, 0, SENTENCE_LENGTH);
 		memset(params->clientAddr.IP, 0, 30);
 		params->clientAddr.port = -1;
 		params->readPos = 0;
-		// params->clientState = NO_USER;
-		// memset(&(params->sentence), 0, sizeof(params->sentence));
-		// memset(&(params->request), 0, sizeof(params->request));
 		pthread_create(&pthreadfd, NULL, EstablishConnection, (void*)params);
 	}
 	close(listenfd);
 	return 0;
 }
-
-/*
-main
-> ArgHandler
-> SocketInit
-> while{ EstablishConnection }
-> Login
-> > 2. HandleCommand
-> > >while { switch command }
-*/

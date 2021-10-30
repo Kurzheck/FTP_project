@@ -64,13 +64,9 @@ void* EstablishConnection(void* params)
 {
 	struct ThreadParam* connectionData = (struct ThreadParam*)params;
 	int connfd = connectionData->connfd;
-	printf("connect\n");
-	fflush(stdout);
 	char responseStr[RESPONSE_LENGTH] = "220 zyh Anonymous FTP server ready.\r\n";
 	if (!WriteResponse(connfd, strlen(responseStr), responseStr))
 	{
-		printf("exit thread\n");
-		fflush(stdout);
 		sleep(2);
 		free(connectionData);
 		close(connfd);
@@ -83,21 +79,14 @@ void* EstablishConnection(void* params)
 void Login(struct ThreadParam* data) {
 	int connfd = data->connfd;
 	char* sentence = data->sentence;
-	printf("enter login while loop...\n");
-	fflush(stdout);
 	// USER
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
 		if (!SetRequest(data)) {
-			printf("invalid command\n");
-			fflush(stdout);
 			INVALID_Handler(data);
 			continue;
 		}
-		// memset(data->sentence, 0, SENTENCE_LENGTH);
 		if (data->request.type == USER) {
-			printf("repuest type == USER\n");
-			fflush(stdout);
 			USER_Handler(data);
 			if (data->clientState == HAS_USER)
 				break;
@@ -114,12 +103,10 @@ void Login(struct ThreadParam* data) {
 	while (1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
 		if (!SetRequest(data)) {
-			printf("invalid command\n");
 			INVALID_Handler(data);
 			continue;
 		}
 		if (data->request.type == PASS) {
-			printf("repuest type == PASS\n");
 			PASS_Handler(data);
 			if (data->clientState == HAS_PASS)
 				break;
@@ -134,13 +121,11 @@ void Login(struct ThreadParam* data) {
 };
 
 void HandleCommand(struct ThreadParam* data) {
-	printf("enter handle command\n");
 	int connfd = data->connfd;
 	char* sentence = data->sentence;
 
 	while(1) {
 		ReadRequest(connfd, SENTENCE_LENGTH, sentence);
-		// printf("type = %d.\n", data->request.type);
 		if (!SetRequest(data)) {
 			INVALID_Handler(data);
 			continue;
@@ -155,8 +140,6 @@ void HandleCommand(struct ThreadParam* data) {
 			case QUIT:
 				QUIT_Handler(data);
 				free(data);
-				// pthread_exit(0);
-				//break;
 				close(connfd);
 				return;
 			case SYST:
@@ -201,90 +184,5 @@ void HandleCommand(struct ThreadParam* data) {
 		}
 	}
 };
-/*
-×÷ÒµÌá¹©µÄÔ­°æmainº¯Êý
-int main(int argc, char **argv) {
-	int listenfd, connfd;		//ï¿½ï¿½ï¿½ï¿½socketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½socketï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½
-	struct sockaddr_in addr;
-	char sentence[8192];
-	int p;
-	int len;
-
-	//ï¿½ï¿½ï¿½ï¿½socket
-	if ((listenfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		printf("Error socket(): %s(%d)\n", strerror(errno), errno);
-		return 1;
-	}
-
-	//ï¿½ï¿½ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½ipï¿½ï¿½port
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = 6789;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);	//ï¿½ï¿½ï¿½ï¿½"0.0.0.0"
-
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ipï¿½ï¿½portï¿½ï¿½socketï¿½ï¿½
-	if (bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-		printf("Error bind(): %s(%d)\n", strerror(errno), errno);
-		return 1;
-	}
-
-	//ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½socket
-	if (listen(listenfd, 10) == -1) {
-		printf("Error listen(): %s(%d)\n", strerror(errno), errno);
-		return 1;
-	}
-
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	while (1) {
-		//ï¿½È´ï¿½clientï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		if ((connfd = accept(listenfd, NULL, NULL)) == -1) {
-			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
-			continue;
-		}
-		
-		//Õ¥ï¿½ï¿½socketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		p = 0;
-		while (1) {
-			int n = read(connfd, sentence + p, 8191 - p);
-			if (n < 0) {
-				printf("Error read(): %s(%d)\n", strerror(errno), errno);
-				close(connfd);
-				continue;
-			} else if (n == 0) {
-				break;
-			} else {
-				p += n;
-				if (sentence[p - 1] == '\n') {
-					break;
-				}
-			}
-		}
-		//socketï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½'\0'
-		sentence[p - 1] = '\0';
-		len = p - 1;
-		
-		//ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		for (p = 0; p < len; p++) {
-			sentence[p] = toupper(sentence[p]);
-		}
-
-		//ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½socket
- 		p = 0;
-		while (p < len) {
-			int n = write(connfd, sentence + p, len + 1 - p);
-			if (n < 0) {
-				printf("Error write(): %s(%d)\n", strerror(errno), errno);
-				return 1;
-	 		} else {
-				p += n;
-			}			
-		}
-
-		close(connfd);
-	}
-
-	close(listenfd);
-}
-*/
 
 #endif

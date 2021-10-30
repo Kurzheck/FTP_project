@@ -19,11 +19,8 @@
 #include "data_structure.h"
 
 int SetRequest(struct ThreadParam* data) {
-	// char sentence[SENTENCE_LENGTH] = strcmp(data->sentence);
 	char sentence[SENTENCE_LENGTH] = {0};
 	strcpy(sentence, data->sentence);
-	printf("============= sentence: %s =============\n", sentence);
-	fflush(stdout);
 	int cmdLength = -1;
 	char* argPtr;
 	for (int i = 0; i < strlen(sentence); i++) {
@@ -42,7 +39,6 @@ int SetRequest(struct ThreadParam* data) {
 	if (cmdLength < 0) {
 		cmdLength = strlen(sentence);
 	}
-	//printf("cmd length = %d\n", cmdLength);
 	if (cmdLength > 4) {
 		printf("command too long.\n");
 		return 0;
@@ -64,7 +60,6 @@ int SetRequest(struct ThreadParam* data) {
 		}
 		break;
 	}
-	printf("arg = %s\n", data->request.arg);
 
 	if (cmdLength == 3) {
 		switch (sentence[0])
@@ -178,7 +173,7 @@ int ReadRequest(int fd, int len, char* sentence) {
 		else {
 			p += n;
 			if (sentence[p - 1] == '\n') {
-				sentence[p-1] = '\0'; // TODO ?? delete this line?
+				sentence[p-1] = '\0';
 				break;
 			}
 		}
@@ -188,8 +183,6 @@ int ReadRequest(int fd, int len, char* sentence) {
 
 int WriteResponse(int fd, int len, const char* sentence) {
 	int p = 0;
-	//printf("enter writeresponse loop\n");
-	fflush(stdout);
 	while (p < len) {
 		int n = write(fd, sentence + p, len - p);
 		if (n < 0) {
@@ -200,16 +193,11 @@ int WriteResponse(int fd, int len, const char* sentence) {
 			p += n;
 		}			
 	}
-	//printf("loop ends\n");
-	//fflush(stdout);
 	return 1;
 };
 
-
-// maybe delete?
 void CloseConnection(int fd) {
 	if (fd > -1) {
-		printf("close connection %d\n", fd);
 		close(fd);
 	}
 };
@@ -221,7 +209,7 @@ int RandomPort() {
 char* AddrToString(int port) {
 	int p1 = port / 256;
 	int p2 = port % 256;
-	char ipStr[30]; // = serverIP;
+	char ipStr[30];
 	strcpy(ipStr, serverIP);
 
 	for (int i = 0; i < 30; i++) {
@@ -236,12 +224,9 @@ char* AddrToString(int port) {
 };
 
 int ParseIPPort(struct ThreadParam* data) {
-	// "192,168,0,105,255,254"
-	printf("enter ParseIPPort\n");
 	char str[SENTENCE_LENGTH] = {0};
 	strcpy(str, data->request.arg);
 	strcpy(data->clientAddr.IP, str);
-	printf("IP = %s\n", data->clientAddr.IP);
 	int comma[5];
 	int j = 0;
 	for (int i = 0; i < strlen(str); i++) {
@@ -259,12 +244,10 @@ int ParseIPPort(struct ThreadParam* data) {
 	}
 	data->clientAddr.IP[comma[3]] = '\0';
 	data->clientAddr.IP[comma[4]] = '\0';
-	printf("IP = %s\n", data->clientAddr.IP);
 	char* p = &(data->clientAddr.IP[comma[3]]);
 	int p1 = atoi(p + 1);
 	p = &(data->clientAddr.IP[comma[4]]);
 	int p2 = atoi(p + 1);
-	printf("p1 = %d, p2 = %d\n", p1, p2);
 	data->clientAddr.port = p1 * 256 + p2;
 	return 1;
 };
@@ -273,7 +256,6 @@ int BuildConnection(struct ThreadParam* data)
 {
 	if (data->dataConnectionMode == PASV_MODE)
 	{
-		printf("is passive mode\n");
 		if ((data->datafd = accept(data->listenfd, NULL, NULL)) == -1) {
 			printf("Error accept(): %s(%d)\n", strerror(errno), errno);
 			return 0;
@@ -282,7 +264,6 @@ int BuildConnection(struct ThreadParam* data)
 
 	else if (data->dataConnectionMode == PORT_MODE)
 	{
-		printf("is port mode\n");
 		if ((data->datafd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
 		{
 			printf("Error socket(): %s(%d)\n", strerror(errno), errno);
@@ -299,31 +280,7 @@ int BuildConnection(struct ThreadParam* data)
 	return 1;
 };
 
-// for STOR
 int ReadFile(struct ThreadParam* data, const char* filePath) {
-	/*
-	FILE* file = fopen(filePath, "w");
-	if (!file) {
-		return 0;
-	}
-	char dataBuffer[BUFFER_SIZE] = {0};
-	// int total = 0;
-	// int readLen;
-	while (1) {
-		int readLen = read(data->datafd, dataBuffer, BUFFER_SIZE);
-		if (readLen < 0) {
-			free(file);
-			return 0;
-		}
-		if (readLen == 0) {
-			break;
-		}
-		fwrite(dataBuffer, sizeof(char), readLen, file);
-	}
-	free(file);
-	return 1;
-	*/
-	printf("enter ReadFile\n");
 	char responseStr[RESPONSE_LENGTH] = {0};
 
 	if (!BuildConnection(data))
@@ -369,7 +326,6 @@ int ReadFile(struct ThreadParam* data, const char* filePath) {
 	}
 	data->dataConnectionMode = NO_CONNECTION;
 	strcpy(responseStr, "226 transmission finished.\r\n");
-	printf("transmission finished.\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 
 ReadFile_failed:
@@ -377,9 +333,7 @@ ReadFile_failed:
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
 
-// for RETR
 int WriteFile(struct ThreadParam* data, const char* filePath) {
-	printf("enter WriteFile\n");
 	char responseStr[RESPONSE_LENGTH] = {0};
 
 	if (!BuildConnection(data))
@@ -397,7 +351,6 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	lseek(fd, data->readPos, SEEK_SET);
 	char dataBuffer[BUFFER_SIZE] = {0};
 	int readLen;
-	// printf("datafd=%d\n", data->datafd);
 	while (1)
 	{
 		readLen = read(fd, dataBuffer, BUFFER_SIZE);
@@ -405,7 +358,6 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 		{
 			break;
 		}
-		//printf("write: %s\n", dataBuffer);
 		write(data->datafd, dataBuffer, readLen);
 	}
 	data->readPos = 0;
@@ -419,11 +371,9 @@ int WriteFile(struct ThreadParam* data, const char* filePath) {
 	}
 	data->dataConnectionMode = NO_CONNECTION;
 	strcpy(responseStr, "226 transmission finished.\r\n");
-	printf("transmission finished.\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 
 WriteFile_failed:
-	printf("write file failed\n");
 	strcpy(responseStr, "451 transmission failed.\r\n");
 	return WriteResponse(data->connfd, strlen(responseStr), responseStr);
 };
@@ -435,8 +385,6 @@ int AbsPath(char* dst, const char* root, const char* cwd, char* arg) {
 	// param = ../../mimimi  relative
 	char param[PATH_LENGTH] = {0};
 	strcpy(param, arg);
-	printf("enter AbsPath\n");
-	printf("root = %s, cwd = %s, param = %s\n", root, cwd, param);
 	if (!dst || !root || !cwd || !arg) {
 		printf("get absolute path failed.\n");
 		return 0;
@@ -512,7 +460,6 @@ int AbsPath(char* dst, const char* root, const char* cwd, char* arg) {
 	{
 		stpcpy(dst, "/");
 	}
-	printf("ori dst:%s\n", dst);
 	while (dst[0] == '/' && strlen(dst) > 1)
 	{
 		if (dst[1] != '/')
@@ -520,9 +467,7 @@ int AbsPath(char* dst, const char* root, const char* cwd, char* arg) {
 			break;
 		}
 		dst++;
-		printf("dst:%s\n", dst);
 	}
-	printf("abs = \"%s\"\n", dst);
 	return 1;
 }
 
@@ -541,7 +486,6 @@ int ChangeDir(struct ThreadParam* data) {
 	char filePath[PATH_LENGTH] = {0};
 	char cwd[PATH_LENGTH] = {0};
 	strcpy(cwd, data->currDir);
-	printf("param=%s\n", data->request.arg);
 	if (!AbsPath(filePath, rootPath, cwd, data->request.arg)) {
 		return 0;
 	}
@@ -552,19 +496,16 @@ int ChangeDir(struct ThreadParam* data) {
 		printf("cd error, no such dir\n");
 		return 0;
 	}
-	// strcpy(data->currDir, filePath);
 	if (!AbsPath(data->currDir, "/", cwd, data->request.arg))
 	{
 		printf("update currDir error\n");
 		return 0;
 	}
-	printf("!!!currDir = %s!!!\n", data->currDir);
 	return 1;
 };
 
 int ListDir(const char *file, const char *dir)
 {
-	//printf("enter ListDir\n");
 	char cmd[PATH_LENGTH];
 	sprintf(cmd, "ls -lh %s", dir);
 	FILE *line = popen(cmd, "r");
