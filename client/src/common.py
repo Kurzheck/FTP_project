@@ -117,7 +117,8 @@ class ClientWindow(QWidget):
 ############################################   util   ############################################
 
     def closeEvent(self, event: QCloseEvent):
-        self.QUIT_handler()
+        if self.user_status:
+            self.QUIT_handler()
         return super().closeEvent(event)
 
     def OnStatusChange(self):

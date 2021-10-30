@@ -1,0 +1,3 @@
+两个客户端先bind某固定端口，然后进入while true循环，其中用户A先Send后Receive，用户B先Receive后Send
+这样做的弊端在于限定两用户只能一次一句进行通讯，对方不回复自己就不能发新消息
+如果要能任意收发消息，就开辟2个线程一个负责Send一个负责Receive
