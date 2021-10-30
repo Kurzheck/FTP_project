@@ -18,7 +18,7 @@
 
 ### 2.1 Server
 
-1. 实现的指令有 USER, PASS, SYST, TYPE, QUIT, PASV, PORT, MKD, CWD, PWD, RMD, RNFR, RNTO, LIST, STOR, RETR (作业要求的16个) 指令以及REST指令。
+1. 实现的指令有 USER, PASS, SYST, TYPE, QUIT, PASV, PORT, MKD, CWD, PWD, RMD, RNFR, RNTO, LIST, STOR, RETR (作业要求的16个) 指令以及REST指令。已通过autograde.py脚本测试。
 2. 用多线程实现对多客户端的支持。
 3. 大文件传输。
 
