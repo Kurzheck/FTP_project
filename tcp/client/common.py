@@ -18,6 +18,7 @@ class ClientWindow(QWidget):
 
     def __init__(self):
         super(ClientWindow, self).__init__()
+        self.setWindowTitle("FTP client") 
         self.__load_ui()
         self.__init_widget()
         self.__init_status()
